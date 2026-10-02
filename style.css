@@ -1,0 +1,104 @@
+/* ====================================================================
+   VARIÁVEIS DE TEMA
+   Toda cor do site é definida aqui como variável CSS. Trocar de tema
+   (ver botão de tema no script.js) só troca esses valores — o resto do
+   CSS nunca referencia uma cor fixa, sempre var(--nome-da-variavel).
+   ==================================================================== */
+
+:root {
+    --cor-fundo: #fde8ff;
+    --cor-texto: #381e3b;
+    --cor-card: #ffffff;
+    --cor-borda: #e2e8f0;
+    --cor-sidebar: #1e293b;
+    --cor-sidebar-hover: #334155;
+    --cor-destaque: #eb25e1;
+    --cor-destaque-hover: #d81dcf;
+    --cor-sombra: rgba(0, 0, 0, 0.08);
+}
+
+
+/* Faz padding/border entrarem no cálculo de largura/altura de todo
+   elemento, em vez de serem somados a ela (evita estouro de layout) */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background-color: var(--cor-fundo);
+    color: var(--cor-texto);
+}
+
+/* ====================================================================
+   TELA DE LOGIN
+   ==================================================================== */
+h1 {
+    margin-top: 0;
+}
+
+
+#tela-login {
+    max-width: 320px;
+    margin: 80px auto;
+    padding: 24px;
+    background: var(--cor-card);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.icone-login {
+    display: block;
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 4px;
+}
+
+#tela-login input {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+}
+
+/* Botões reutilizáveis em qualquer parte do site (não só no login):
+   .botao-primario = ação principal (preenchido);
+   .botao-secundario = ação alternativa/discreta (contorno) */
+.botao-primario,
+.botao-secundario {
+    appearance: none;
+    -webkit-appearance: none;
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.botao-primario {
+    background-color: var(--cor-destaque);
+    color: white;
+    border: none;
+}
+
+.botao-primario:hover {
+    background-color: var(--cor-destaque-hover);
+}
+
+.botao-secundario {
+    background-color: white;
+    color: var(--cor-destaque);
+    border: 1.5px solid var(--cor-destaque);
+}
+
+.botao-secundario:hover {
+    background-color: #eff6ff;
+}
