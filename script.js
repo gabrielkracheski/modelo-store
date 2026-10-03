@@ -126,3 +126,90 @@ botoesNav.forEach(function (botao) {
         mostrarSecao(botao.dataset.secao);
     });
 });
+
+mostrarSecao("compras"); // mostra a seção de produtos por padrão
+
+/* ====================================================================
+   REFERÊNCIAS: FORMULÁRIO, PAGINAÇÃO, FILTROS, MODAL, IMPORTAÇÃO
+   ==================================================================== */
+
+const form = document.getElementById("form-lancamento");
+const lista = document.getElementById("lista-lancamentos");
+const modal = document.getElementById("modal-compra");
+const modalTitulo = document.getElementById("modal-titulo");
+const botaoNovoLancamento = document.getElementById("botao-novo-compra");
+const botaoFecharModal = document.getElementById("botao-fechar-modal");
+let indiceEmEdicao = null; // null = criando um novo; número = editando esse índice
+
+/* ---------- Modal: reaproveitado tanto para criar quanto editar ---------- */
+function abrirModal(titulo) {
+    modalTitulo.textContent = titulo;
+    modal.style.display = "flex";
+}
+
+function fecharModal() {
+    modal.style.display = "none";
+    form.reset();
+    indiceEmEdicao = null;
+    form.querySelector("button[type=submit]").textContent = "Adicionar";
+}
+
+botaoNovoLancamento.addEventListener("click", function () {
+    abrirModal("Nova Compra", true);
+});
+
+botaoFecharModal.addEventListener("click", fecharModal);
+
+// Fecha o modal ao clicar na área escurecida fora do card (mas não ao
+// clicar dentro do formulário) — checagem via evento.target === modal
+modal.addEventListener("click", function (evento) {
+    if (evento.target === modal) {
+        fecharModal();
+    }
+});
+
+/* ====================================================================
+   ENVIO DO FORMULÁRIO (criar, editar, ou criar em série/repetição)
+   ==================================================================== */
+
+function calcularTotal(preco, frete, quantidade) {
+    return (preco * quantidade) + frete;
+}
+
+form.addEventListener("submit", async function (evento) {
+    evento.preventDefault(); // evita o comportamento padrão de recarregar a página
+
+    const preco = parseFloat(document.getElementById("preco").value);
+    const frete = parseFloat(document.getElementById("frete").value);
+    const quantidade = parseInt(document.getElementById("quantidade").value);
+    const dataPedido = document.getElementById("dataPedido").value;
+
+    // Dados comuns a todos os casos (novo, edição, ou cada cópia de uma repetição)
+    const dadosBase = {
+        uid: auth.currentUser.uid,
+        lote: parseInt(document.getElementById("lote").value),
+        dataPedido: document.getElementById("dataPedido").value,
+        preco: parseFloat(document.getElementById("preco").value),
+        frete: parseFloat(document.getElementById("frete").value),
+        quantidade: parseInt(document.getElementById("quantidade").value),
+        total: calcularTotal(preco, frete, quantidade),
+        entrega: document.getElementById("entrega").value,
+        dataEntrega: document.getElementById("dataEntrega").value,
+    };
+
+    console.log(dadosBase)
+
+    if (indiceEmEdicao === null) {
+        await addDoc(collection(db, "compras"), { ...dadosBase, data: dataPedido });
+    } else {
+        // Editando um lançamento existente: atualiza o documento pelo ID salvo
+        const idDocumento = lancamentos[indiceEmEdicao].id;
+        await updateDoc(doc(db, "compras", idDocumento), { ...dadosBase, data: dataPedido });
+        indiceEmEdicao = null;
+        form.querySelector("button[type=submit]").textContent = "Adicionar";
+    }
+
+
+    form.reset();
+    fecharModal();
+});
