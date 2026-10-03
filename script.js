@@ -42,6 +42,10 @@ const telaLogin = document.getElementById("tela-login");
 const telaApp = document.getElementById("tela-app");
 const loginErro = document.getElementById("login-erro");
 
+//Definição de SEÇÕES
+const secoes = document.querySelectorAll(".secao");
+const botoesNav = document.querySelectorAll(".nav-item");
+
 
 /* ====================================================================
    AUTENTICAÇÃO (login / criar conta / sair)
@@ -79,7 +83,7 @@ document.getElementById("botao-sair").addEventListener("click", function () {
     signOut(auth);
 });
 
-//SINCRONIZAÇÃO
+//Sincronização
 let pararDeEscutar = null;
 
 onAuthStateChanged(auth, function (usuario) {
@@ -99,4 +103,26 @@ onAuthStateChanged(auth, function (usuario) {
         }
 
     }
+});
+
+//Usuário Logado
+const textoUsuarioLogado = document.getElementById("texto-usuario-logado");
+
+
+// Controla qual <section> fica visível, com base no data-secao do botão
+function mostrarSecao(nomeSecao) {
+
+    secoes.forEach(function (secao) {
+        secao.style.display = secao.id === "secao-" + nomeSecao ? "block" : "none";
+    });
+
+    botoesNav.forEach(function (botao) {
+        botao.classList.toggle("ativo", botao.dataset.secao === nomeSecao);
+    });
+}
+
+botoesNav.forEach(function (botao) {
+    botao.addEventListener("click", function () {
+        mostrarSecao(botao.dataset.secao);
+    });
 });

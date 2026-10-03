@@ -10,8 +10,8 @@
     --cor-texto: #381e3b;
     --cor-card: #ffffff;
     --cor-borda: #e2e8f0;
-    --cor-sidebar: #1e293b;
-    --cor-sidebar-hover: #334155;
+    --cor-sidebar: #3b1e36;
+    --cor-sidebar-hover: #4e3355;
     --cor-destaque: #eb25e1;
     --cor-destaque-hover: #d81dcf;
     --cor-sombra: rgba(0, 0, 0, 0.08);
@@ -101,4 +101,84 @@ h1 {
 
 .botao-secundario:hover {
     background-color: #eff6ff;
+}
+
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background-color: var(--cor-sidebar);
+    color: white;
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sidebar h2 {
+    margin: 0 0 16px 0;
+    font-size: 1.2rem;
+}
+
+.nav-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sidebar button {
+    background: none;
+    border: none;
+    color: white;
+    text-align: left;
+    padding: 10px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.sidebar button:hover {
+    background-color: var(--cor-sidebar-hover);
+}
+
+/* Aplicada via JS (classList.toggle) no botão da seção atualmente aberta */
+.sidebar button.ativo {
+    background-color: var(--cor-destaque);
+    font-weight: bold;
+}
+
+/* Empurra tudo dentro dela para o fim da sidebar, aproveitando o
+   espaço vazio (truque clássico de margin-top: auto num flex column) */
+.sidebar-rodape {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-top: 1px solid var(--cor-sidebar-hover);
+    padding-top: 12px;
+}
+
+.usuario-logado {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    color: white;
+    opacity: 0.7;
+    /* corta e-mails longos com "..." em vez de estourar a largura da sidebar */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.conteudo {
+    flex-grow: 1;
+    padding: 32px;
+}
+
+h1 {
+    margin-top: 0;
+    color: var(--cor-texto);
 }

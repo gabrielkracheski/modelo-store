@@ -46,7 +46,43 @@
          Escondida por padrão (style="display: none"); só aparece após login -->
     <div id="tela-app" style="display: none;">
 
-        <button id="botao-sair">Sair</button>
+        <div class="layout">
+
+            <nav class="sidebar">
+
+                <h2>Controle Vendas</h2>
+
+                <div class="nav-lista">
+
+                    <button class="nav-item" data-secao="compras">Compras</button>
+                    <button class="nav-item" data-secao="vendas">Vendas</button>
+                    <button class="nav-item" data-secao="resumo">Resumos</button>
+
+                </div>
+
+                <div class="sidebar-rodape">
+
+                    <div class="usuario-logado">
+                        <span id="texto-usuario-logado"></span>
+                    </div>
+
+                    <button id="botao-sair">Sair</button>
+                </div>
+            </nav>
+
+            <!-- ---------- ÁREA DE CONTEÚDO ---------- -->
+
+            <main class="conteudo">
+
+                <section id="secao-compras" class="secao">
+                    <h1>Compras</h1>
+
+                </section>
+
+            </main>
+
+        </div>
+
 
     </div>
 
