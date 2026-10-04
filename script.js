@@ -84,7 +84,9 @@ document.getElementById("botao-sair").addEventListener("click", function () {
 });
 
 //Sincronização
+let compras = []
 let pararDeEscutar = null;
+let selecionados = new Set();
 
 onAuthStateChanged(auth, function (usuario) {
     if (usuario) {
@@ -92,7 +94,25 @@ onAuthStateChanged(auth, function (usuario) {
         telaApp.style.display = "block";
         textoUsuarioLogado.textContent = usuario.email;
 
+        // Só busca (e escuta) os documentos que pertencem a este usuário
+        const consulta = query(
+            collection(db, "compras"),
+            where("uid", "==", usuario.uid)
+        );
 
+        // onSnapshot = "escuta ao vivo": roda de novo automaticamente
+        // toda vez que os dados mudam no Firestore, em qualquer dispositivo
+        pararDeEscutar = onSnapshot(consulta, function (snapshot) {
+            compras = snapshot.docs.map(function (documento) {
+                return { id: documento.id, ...documento.data() };
+            });
+
+            renderizar();
+            //renderizarResumo();
+            //renderizarResumoAnual();
+            //preencherSeletorMeses();
+            //renderizarDashboard();
+        });
 
     } else {
         telaLogin.style.display = "block";
@@ -101,7 +121,7 @@ onAuthStateChanged(auth, function (usuario) {
         if (pararDeEscutar) {
             pararDeEscutar(); // evita continuar escutando dados de uma sessão encerrada
         }
-
+        compras = [];
     }
 });
 
@@ -134,12 +154,13 @@ mostrarSecao("compras"); // mostra a seção de produtos por padrão
    ==================================================================== */
 
 const form = document.getElementById("form-lancamento");
-const lista = document.getElementById("lista-lancamentos");
+const lista = document.getElementById("lista-compras");
 const modal = document.getElementById("modal-compra");
 const modalTitulo = document.getElementById("modal-titulo");
 const botaoNovoLancamento = document.getElementById("botao-novo-compra");
 const botaoFecharModal = document.getElementById("botao-fechar-modal");
 let indiceEmEdicao = null; // null = criando um novo; número = editando esse índice
+
 
 /* ---------- Modal: reaproveitado tanto para criar quanto editar ---------- */
 function abrirModal(titulo) {
@@ -171,6 +192,17 @@ modal.addEventListener("click", function (evento) {
 /* ====================================================================
    ENVIO DO FORMULÁRIO (criar, editar, ou criar em série/repetição)
    ==================================================================== */
+function formatarMoeda(valor) {
+    return "R$ " + valor.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+function formatarData(dataISO) {
+    const [ano, mes, dia] = dataISO.split("-");
+    return dia + "-" + mes + "-" + ano;
+}
 
 function calcularTotal(preco, frete, quantidade) {
     return (preco * quantidade) + frete;
@@ -197,13 +229,11 @@ form.addEventListener("submit", async function (evento) {
         dataEntrega: document.getElementById("dataEntrega").value,
     };
 
-    console.log(dadosBase)
-
     if (indiceEmEdicao === null) {
         await addDoc(collection(db, "compras"), { ...dadosBase, data: dataPedido });
     } else {
         // Editando um lançamento existente: atualiza o documento pelo ID salvo
-        const idDocumento = lancamentos[indiceEmEdicao].id;
+        const idDocumento = compras[indiceEmEdicao].id;
         await updateDoc(doc(db, "compras", idDocumento), { ...dadosBase, data: dataPedido });
         indiceEmEdicao = null;
         form.querySelector("button[type=submit]").textContent = "Adicionar";
@@ -213,3 +243,115 @@ form.addEventListener("submit", async function (evento) {
     form.reset();
     fecharModal();
 });
+
+//Renderização COMPRAS
+/* ---------- Editar: preenche o formulário com os dados do item clicado ---------- */
+function editarLancamento(indice) {
+    const item = compras[indice];
+
+    document.getElementById("lote").value = item.lote;
+    document.getElementById("dataPedido").value = item.dataPedido;
+    document.getElementById("preco").value = item.preco;
+    document.getElementById("frete").value = item.frete;
+    document.getElementById("quantidade").value = item.quantidade;
+    document.getElementById("entrega").value = item.entrega;
+    document.getElementById("dataEntrega").value = item.dataEntrega;
+
+    indiceEmEdicao = indice;
+    form.querySelector("button[type=submit]").textContent = "Salvar alteração";
+    abrirModal("Editar Lançamento", false);
+}
+
+/* ---------- Exclusão individual ---------- */
+async function excluirLancamento(indice) {
+    const confirmar = confirm("Tem certeza que deseja excluir este lançamento?");
+   
+    if (!confirmar) return;
+
+    const idDocumento = compras[indice].id;
+    await deleteDoc(doc(db, "compras", idDocumento));
+    // Não precisa chamar renderizar() aqui: o onSnapshot detecta a
+    // exclusão no Firestore e atualiza a tela sozinho
+}
+
+function renderizar() {
+    lista.innerHTML = "";
+
+    const lancamentosFiltrados = compras
+
+    lancamentosFiltrados.forEach(function (item) {
+        const linha = document.createElement("tr");
+
+        // Checkbox de seleção: nasce marcado/desmarcado consultando o
+        // Set "selecionados" — ele é sempre a fonte da verdade, não o DOM
+        const celulaSelecionar = document.createElement("td");
+        const checkboxLinha = document.createElement("input");
+        checkboxLinha.type = "checkbox";
+        checkboxLinha.checked = selecionados.has(item.id);
+        checkboxLinha.addEventListener("change", function () {
+            if (checkboxLinha.checked) {
+                selecionados.add(item.id);
+            } else {
+                selecionados.delete(item.id);
+            }
+            
+        });
+        celulaSelecionar.appendChild(checkboxLinha);
+
+        const celulaLote = document.createElement("td");
+        celulaLote.textContent = item.lote;
+
+        const celulaDataPedido = document.createElement("td");
+        celulaDataPedido.textContent = formatarData(item.dataPedido);
+
+        const celulaPreco = document.createElement("td");
+        celulaPreco.textContent = formatarMoeda(item.preco);
+
+        const celulaFrete = document.createElement("td");
+        celulaFrete.textContent = formatarMoeda(item.frete);
+
+        const celulaQuantidade = document.createElement("td");
+        celulaQuantidade.textContent = item.quantidade;
+
+        const celulaTotal = document.createElement("td");
+        celulaTotal.textContent = formatarMoeda(item.total);
+
+        const celulaEntrega = document.createElement("td");
+        celulaEntrega.textContent = item.entrega;
+
+        const celulaDataEntrega = document.createElement("td");
+        celulaDataEntrega.textContent = item.dataEntrega ? formatarData(item.dataEntrega) : "----------------";
+
+        const celulaAcoes = document.createElement("td");
+        const botaoEditar = document.createElement("button");
+        botaoEditar.textContent = "Editar";
+        botaoEditar.addEventListener("click", function () {
+            const indiceReal = compras.indexOf(item);
+            editarLancamento(indiceReal);
+        });
+
+        const botaoExcluir = document.createElement("button");
+        botaoExcluir.textContent = "Excluir";
+        botaoExcluir.addEventListener("click", function () {
+            const indiceReal = compras.indexOf(item);
+            excluirLancamento(indiceReal);
+        });
+
+        celulaAcoes.appendChild(botaoEditar);
+        celulaAcoes.appendChild(botaoExcluir);
+
+        linha.appendChild(celulaSelecionar);
+        linha.appendChild(celulaLote);
+        linha.appendChild(celulaDataPedido);
+        linha.appendChild(celulaPreco);
+        linha.appendChild(celulaFrete);
+        linha.appendChild(celulaQuantidade);
+        linha.appendChild(celulaTotal);
+        linha.appendChild(celulaEntrega);
+        linha.appendChild(celulaDataEntrega);
+        linha.appendChild(celulaAcoes);
+
+        lista.appendChild(linha);
+    });
+
+}

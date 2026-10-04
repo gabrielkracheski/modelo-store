@@ -9,7 +9,7 @@
     --cor-fundo: #fde8ff;
     --cor-texto: #381e3b;
     --cor-card: #ffffff;
-    --cor-borda: #e2e8f0;
+    --cor-borda: #f0e2f0;
     --cor-sidebar: #3b1e36;
     --cor-sidebar-hover: #4e3355;
     --cor-destaque: #eb25e1;
@@ -284,10 +284,166 @@ form label {
 
 
 form input,
-form select {
+form select,
+.barra-filtros input,
+.barra-filtros select {
     padding: 8px;
     border: 1px solid var(--cor-borda);
     border-radius: 6px;
     background: var(--cor-fundo);
     color: var(--cor-texto);
+}
+
+/* ====================================================================
+   ELEMENTOS GERAIS (títulos, tabelas)
+   ==================================================================== */
+
+h1 {
+    margin-top: 0;
+    color: var(--cor-texto);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 24px;
+    background: var(--cor-card);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+th,
+td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--cor-borda);
+}
+
+th {
+    background-color: var(--cor-borda);
+}
+
+/* Container de rolagem horizontal para tabelas largas em telas
+   pequenas (ver também a media query de responsividade, no fim) */
+.tabela-scroll {
+    overflow-x: auto;
+    margin-bottom: 24px;
+    -webkit-overflow-scrolling: touch;
+    /* rolagem mais suave por toque no iOS */
+}
+
+.tabela-scroll table {
+    margin-bottom: 0;
+    /* evita margem duplicada (o container já tem a dele) */
+}
+
+button {
+    cursor: pointer;
+}
+
+button[type="submit"] {
+    align-self: flex-end;
+    background-color: var(--cor-destaque);
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+}
+
+/* ====================================================================
+   TABELA DE LANÇAMENTOS: ações (Editar/Excluir), seleção e rodapé
+   ==================================================================== */
+
+.acoes-compras {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+/* Reaproveita .botao-primario/.botao-secundario, mas cabendo no
+   tamanho do texto em vez de esticar 100% (ver definição original) */
+.botao-compacto {
+    width: auto;
+    margin-bottom: 0;
+}
+
+#lista-compras td:last-child {
+    display: flex;
+    gap: 8px;
+}
+
+#lista-compras button {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    border: 1px solid var(--cor-borda);
+    background: var(--cor-fundo);
+    color: var(--cor-texto);
+}
+
+#lista-compras button:hover {
+    background: var(--cor-borda);
+}
+
+/* :last-child pega o botão "Excluir" (sempre o 2º/último botão de cada
+   linha) e destaca em vermelho — convenção visual para ações destrutivas */
+#lista-compras button:last-child {
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+#lista-compras button:last-child:hover {
+    background: #fee2e2;
+}
+
+/* ====================================================================
+   BARRA DE FILTROS (reaproveitada em Lançamentos e Dashboard)
+   ==================================================================== */
+
+.barra-filtros {
+    background: var(--cor-card);
+    padding: 16px 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px var(--cor-sombra);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+/* Container padrão de "label + campo" usado nos filtros e na paginação */
+.campo {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+}
+
+.campo label {
+    font-size: 0.85rem;
+    color: var(--cor-texto);
+}
+
+/* O botão de contorno herda width:100% da regra genérica — aqui
+   sobrescrevemos para ele caber no tamanho do conteúdo, alinhado
+   com a altura dos outros campos da barra */
+.barra-filtros .botao-secundario {
+    width: auto;
+    padding: 10px 18px;
+    font-weight: normal;
+    align-self: center;
+    margin-top: 0;
+}
+
+/* Rótulo discreto (ex: "FILTROS") acima de um grupo de campos */
+.rotulo-secao {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--cor-texto);
+    opacity: 0.6;
+    margin: 0 0 8px 0;
 }

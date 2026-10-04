@@ -84,7 +84,7 @@
                             Compra</button>
                     </div>
 
-                    
+
                     <div id="modal-compra" class="modal-overlay" style="display: none;">
                         <div class="modal-conteudo">
                             <div class="modal-cabecalho">
@@ -112,7 +112,7 @@
                                 <select id="entrega" required>
                                     <option value="Sim">Sim</option>
                                     <option value="Não">Não</option>
-                                </select>    
+                                </select>
 
                                 <label for="dataEntrega">Data Entrega:</label>
                                 <input type="date" id="dataEntrega">
@@ -123,7 +123,54 @@
                         </div>
                     </div>
 
-                    
+                    <!-- ============ BARRA DE FILTROS ============
+                         Cada campo dispara renderizar() no evento "change" (ver script.js).
+                         O filtro não altera o array "lancamentos" original, só o que é exibido -->
+                    <p class="rotulo-secao">Filtros</p>
+                    <div class="barra-filtros">
+                        <div class="campo">
+                            <label for="filtro-data-inicio-pedido">Pedido de:</label>
+                            <input type="date" id="filtro-data-inicio-pedido">
+                        </div>
+
+                        <div class="campo">
+                            <label for="filtro-data-fim-pedido">Até:</label>
+                            <input type="date" id="filtro-data-fim-pedido">
+                        </div>
+
+                        <div class="campo">
+                            <label for="filtro-entrega">Entrega:</label>
+                            <select id="filtro-entrega">
+                                <option value="">Todas</option>
+                                <option value="Sim">Sim</option>
+                                <option value="Não">Não</option>
+                            </select>
+                        </div>
+                        <button id="botao-limpar-filtros" class="botao-secundario" type="button">Limpar filtros</button>
+                    </div>
+
+                    <div class="tabela-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <!-- Checkbox "selecionar todos" da página atual (ver seleção em massa) -->
+                                    <th><input type="checkbox" id="selecionar-todos"></th>
+                                    <th>Lote</th>
+                                    <th>Data Pedido</th>
+                                    <th>Preço</th>
+                                    <th>Frete</th>
+                                    <th>Quantidade</th>
+                                    <th>Total</th>
+                                    <th>Entrega</th>
+                                    <th>Data Entrega</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-compras"></tbody>
+                        </table>
+                    </div>
+
+
                 </section>
 
             </main>
