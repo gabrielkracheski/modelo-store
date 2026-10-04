@@ -159,6 +159,12 @@ const modal = document.getElementById("modal-compra");
 const modalTitulo = document.getElementById("modal-titulo");
 const botaoNovoLancamento = document.getElementById("botao-novo-compra");
 const botaoFecharModal = document.getElementById("botao-fechar-modal");
+const filtroDataInicioPedido = document.getElementById("filtro-data-inicio-pedido");
+const filtroDataFimPedido = document.getElementById("filtro-data-fim-pedido");
+const filtroEntrega = document.getElementById("filtro-entrega");
+const botaoLimparFiltros = document.getElementById("botao-limpar-filtros")
+const textoTotalCompras =  document.getElementById("texto-total-compras")
+
 let indiceEmEdicao = null; // null = criando um novo; número = editando esse índice
 
 
@@ -192,6 +198,27 @@ modal.addEventListener("click", function (evento) {
 /* ====================================================================
    ENVIO DO FORMULÁRIO (criar, editar, ou criar em série/repetição)
    ==================================================================== */
+/* ---------- Filtros: cada campo re-renderiza a lista ao mudar,
+   sempre voltando para a página 1 (evita ficar "preso" numa página
+   que deixou de existir depois de um filtro mais restritivo) ---------- */
+filtroDataInicioPedido.addEventListener("change", function () {
+    renderizar();
+});
+filtroDataFimPedido.addEventListener("change", function () {
+    renderizar();
+});
+filtroEntrega.addEventListener("change", function () {
+    renderizar();
+});
+
+botaoLimparFiltros.addEventListener("click", function () {
+    filtroDataInicioPedido.value = "";
+    filtroDataFimPedido.value = ""
+    filtroEntrega.value = ""
+    renderizar()
+});
+
+
 function formatarMoeda(valor) {
     return "R$ " + valor.toLocaleString("pt-BR", {
         minimumFractionDigits: 2,
@@ -265,7 +292,7 @@ function editarLancamento(indice) {
 /* ---------- Exclusão individual ---------- */
 async function excluirLancamento(indice) {
     const confirmar = confirm("Tem certeza que deseja excluir este lançamento?");
-   
+
     if (!confirmar) return;
 
     const idDocumento = compras[indice].id;
@@ -277,7 +304,18 @@ async function excluirLancamento(indice) {
 function renderizar() {
     lista.innerHTML = "";
 
-    const lancamentosFiltrados = compras
+    const dataInicioPedido = filtroDataInicioPedido.value
+    const dataFimPedido = filtroDataFimPedido.value
+    const entrega = filtroEntrega.value
+
+    const lancamentosFiltrados = compras.filter(function (item) {
+        const passaDataInicioPedido = dataInicioPedido === "" || item.dataPedido >= dataInicioPedido;
+        const passaDataFimPedido = dataFimPedido === "" || item.dataPedido <= dataFimPedido;
+        const passaEntrega = entrega === "" || item.entrega === entrega;
+        return passaDataInicioPedido && passaDataFimPedido && passaEntrega;
+    }).sort(function (a, b) {
+        return b.dataPedido.localeCompare(a.dataPedido);
+    });
 
     lancamentosFiltrados.forEach(function (item) {
         const linha = document.createElement("tr");
@@ -294,7 +332,7 @@ function renderizar() {
             } else {
                 selecionados.delete(item.id);
             }
-            
+
         });
         celulaSelecionar.appendChild(checkboxLinha);
 
@@ -353,5 +391,7 @@ function renderizar() {
 
         lista.appendChild(linha);
     });
+
+    textoTotalCompras.textContent = "Total: " + lancamentosFiltrados.length + " lançamento(s)";false
 
 }

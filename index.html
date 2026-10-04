@@ -170,6 +170,31 @@
                         </table>
                     </div>
 
+                    <!-- Contador de total + ações sobre os itens selecionados -->
+                    <div class="rodape-tabela">
+                        <span id="texto-total-compras"></span>
+
+                        <div class="acoes-selecao">
+                            <span id="texto-selecionados"></span>
+                            <button id="botao-excluir-selecionados" class="botao-secundario botao-compacto"
+                                type="button" disabled>Excluir selecionados</button>
+                        </div>
+                    </div>
+
+                    <!-- Paginação: navega pelos lançamentos filtrados, itensPorPagina de cada vez -->
+                    <div class="paginacao">
+                        <button id="botao-pagina-anterior" type="button">Anterior</button>
+                        <span id="texto-pagina">Página 1 de 1</span>
+                        <button id="botao-pagina-proxima" type="button">Próxima</button>
+                        <div class="campo campo-itens-pagina">
+                            <label for="itens-por-pagina">Itens por página</label>
+                            <select id="itens-por-pagina">
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                            </select>
+                        </div>
+                    </div>
 
                 </section>
 
