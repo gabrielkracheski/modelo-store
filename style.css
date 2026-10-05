@@ -1,5 +1,27 @@
 /* ====================================================================
-   VARIÁVEIS DE TEMA
+   ÍNDICE DO ARQUIVO
+   --------------------------------------------------------------------
+   1. VARIÁVEIS DE TEMA
+   2. RESET E BASE (box-sizing, body)
+   3. TELA DE LOGIN
+   4. BOTÕES REUTILIZÁVEIS (.botao-primario / .botao-secundario)
+   5. LAYOUT GERAL (.layout, .conteudo)
+   6. SIDEBAR (menu lateral)
+   7. MODAL (Novo/Editar)
+   8. FORMULÁRIO (usado dentro do modal)
+   9. ELEMENTOS GERAIS (títulos, tabelas)
+  10. TABELA DE COMPRAS (ações, seleção, botões da linha)
+  11. BARRA DE FILTROS
+  12. PAGINAÇÃO
+
+   Obs.: a ordem das regras foi mantida exatamente como no original,
+   porque no CSS a ordem influencia qual regra "vence" quando duas
+   têm a mesma especificidade.
+   ==================================================================== */
+
+
+/* ====================================================================
+   1. VARIÁVEIS DE TEMA
    Toda cor do site é definida aqui como variável CSS. Trocar de tema
    (ver botão de tema no script.js) só troca esses valores — o resto do
    CSS nunca referencia uma cor fixa, sempre var(--nome-da-variavel).
@@ -18,6 +40,10 @@
 }
 
 
+/* ====================================================================
+   2. RESET E BASE
+   ==================================================================== */
+
 /* Faz padding/border entrarem no cálculo de largura/altura de todo
    elemento, em vez de serem somados a ela (evita estouro de layout) */
 * {
@@ -31,8 +57,9 @@ body {
     color: var(--cor-texto);
 }
 
+
 /* ====================================================================
-   TELA DE LOGIN
+   3. TELA DE LOGIN
    ==================================================================== */
 h1 {
     margin-top: 0;
@@ -64,6 +91,11 @@ h1 {
     border: 1px solid #cbd5e1;
     border-radius: 6px;
 }
+
+
+/* ====================================================================
+   4. BOTÕES REUTILIZÁVEIS
+   ==================================================================== */
 
 /* Botões reutilizáveis em qualquer parte do site (não só no login):
    .botao-primario = ação principal (preenchido);
@@ -103,10 +135,21 @@ h1 {
     background-color: #eff6ff;
 }
 
+
+/* ====================================================================
+   5. LAYOUT GERAL
+   ==================================================================== */
+
+/* Estrutura principal: sidebar à esquerda + conteúdo à direita */
 .layout {
     display: flex;
     min-height: 100vh;
 }
+
+
+/* ====================================================================
+   6. SIDEBAR (menu lateral)
+   ==================================================================== */
 
 .sidebar {
     width: 220px;
@@ -173,6 +216,11 @@ h1 {
     white-space: nowrap;
 }
 
+
+/* ====================================================================
+   5. LAYOUT GERAL (continuação): área de conteúdo
+   ==================================================================== */
+
 .conteudo {
     flex-grow: 1;
     padding: 32px;
@@ -188,9 +236,12 @@ h1 {
     margin-bottom: 0;
 }
 
+
 /* ====================================================================
-   MODAL (Novo/Editar Lançamento)
+   7. MODAL (Novo/Editar Lançamento)
    ==================================================================== */
+
+/* Camada escura que cobre a tela inteira por trás do modal */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -204,6 +255,7 @@ h1 {
     z-index: 100;
 }
 
+/* Card branco central do modal */
 .modal-conteudo {
     background: var(--cor-card);
     border-radius: 8px;
@@ -225,6 +277,7 @@ h1 {
     margin-bottom: 0;
 }
 
+/* Cabeçalho do modal: título + botão de fechar (×) */
 .modal-cabecalho {
     display: flex;
     justify-content: space-between;
@@ -246,8 +299,9 @@ h1 {
     color: var(--cor-texto);
 }
 
+
 /* ====================================================================
-   FORMULÁRIO (usado dentro do modal de compras)
+   8. FORMULÁRIO (usado dentro do modal de compras)
    ==================================================================== */
 button {
     cursor: pointer;
@@ -283,6 +337,7 @@ form label {
 }
 
 
+/* Estilo dos campos de formulário e dos campos da barra de filtros */
 form input,
 form select,
 .barra-filtros input,
@@ -294,8 +349,9 @@ form select,
     color: var(--cor-texto);
 }
 
+
 /* ====================================================================
-   ELEMENTOS GERAIS (títulos, tabelas)
+   9. ELEMENTOS GERAIS (títulos, tabelas)
    ==================================================================== */
 
 h1 {
@@ -351,10 +407,12 @@ button[type="submit"] {
     border-radius: 6px;
 }
 
+
 /* ====================================================================
-   TABELA DE LANÇAMENTOS: ações (Editar/Excluir), seleção e rodapé
+   10. TABELA DE LANÇAMENTOS: ações (Editar/Excluir), seleção e rodapé
    ==================================================================== */
 
+/* Linha de botões acima da tabela (ex: "+ Nova Compra") */
 .acoes-compras {
     display: flex;
     gap: 12px;
@@ -368,6 +426,7 @@ button[type="submit"] {
     margin-bottom: 0;
 }
 
+/* Última célula de cada linha (coluna Ações): botões lado a lado */
 #lista-compras td:last-child {
     display: flex;
     gap: 8px;
@@ -397,8 +456,9 @@ button[type="submit"] {
     background: #fee2e2;
 }
 
+
 /* ====================================================================
-   BARRA DE FILTROS (reaproveitada em Lançamentos e Dashboard)
+   11. BARRA DE FILTROS (reaproveitada em Lançamentos e Dashboard)
    ==================================================================== */
 
 .barra-filtros {
@@ -448,6 +508,7 @@ button[type="submit"] {
     margin: 0 0 8px 0;
 }
 
+/* Rodapé da tabela: total à esquerda, ações de seleção à direita */
 .rodape-tabela {
     display: flex;
     justify-content: space-between;
@@ -463,6 +524,7 @@ button[type="submit"] {
     opacity: 0.7;
 }
 
+/* Contador "X selecionado(s)" + botão Excluir Selecionados */
 .acoes-selecao {
     display: flex;
     align-items: center;
@@ -474,8 +536,9 @@ button[type="submit"] {
     cursor: not-allowed;
 }
 
+
 /* ====================================================================
-   PAGINAÇÃO
+   12. PAGINAÇÃO
    ==================================================================== */
 
 .paginacao {
