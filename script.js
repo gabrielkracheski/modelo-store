@@ -128,6 +128,11 @@ let pararDeEscutar = null;    // função para "desligar" a escuta ao deslogar
 let selecionados = new Set(); // IDs marcados nos checkboxes (fonte da verdade da seleção)
 let idsPaginaAtual = [];      // IDs visíveis na página atual (usado pelo "selecionar todos")
 
+let vendas = []              // lista de vendas (preenchida só pelo onSnapshot)
+let pararDeEscutarVenda = null;    // função para "desligar" a escuta ao deslogar
+let selecionadosVenda = new Set(); // IDs marcados nos checkboxes (fonte da verdade da seleção) 
+let idsPaginaAtualVenda = [];      // IDs visíveis na página atual (usado pelo "selecionar todos")
+
 //Usuário Logado
 const textoUsuarioLogado = document.getElementById("texto-usuario-logado");
 
@@ -152,10 +157,21 @@ onAuthStateChanged(auth, function (usuario) {
             });
 
             renderizar();
-            //renderizarResumo();
-            //renderizarResumoAnual();
-            //preencherSeletorMeses();
-            //renderizarDashboard();
+        });
+
+        // Vendas
+        const consultaVendas = query(
+            collection(db, "vendas"),
+            where("uid", "==", usuario.uid)
+        );
+
+        pararDeEscutarVenda = onSnapshot(consultaVendas, function (snapshot) {
+            vendas = snapshot.docs.map(function (documento) {
+                return { id: documento.id, ...documento.data() };
+            });
+
+            renderizarVendas();
+
         });
 
     } else {
@@ -165,7 +181,13 @@ onAuthStateChanged(auth, function (usuario) {
         if (pararDeEscutar) {
             pararDeEscutar(); // evita continuar escutando dados de uma sessão encerrada
         }
+        if (pararDeEscutarVendas) {
+            pararDeEscutarVendas();
+            pararDeEscutarVendas = null;
+        }
+
         compras = [];
+        vendas = [];
     }
 });
 
@@ -207,12 +229,28 @@ const modalTitulo = document.getElementById("modal-titulo");
 const botaoNovoLancamento = document.getElementById("botao-novo-compra");
 const botaoFecharModal = document.getElementById("botao-fechar-modal");
 
+const botaoNovoVenda = document.getElementById("botao-novo-venda");
+const modalVenda = document.getElementById("modal-venda");
+const modalTituloVenda = document.getElementById("modal-titulo-venda");
+const botaoFecharModalVenda = document.getElementById("botao-fechar-modal-venda");
+const formVenda = document.getElementById("form-lancamento-venda");
+const listaVendas = document.getElementById("lista-vendas");
+
+
 // Filtros e textos de apoio
 const filtroDataInicioPedido = document.getElementById("filtro-data-inicio-pedido");
 const filtroDataFimPedido = document.getElementById("filtro-data-fim-pedido");
 const filtroEntrega = document.getElementById("filtro-entrega");
 const botaoLimparFiltros = document.getElementById("botao-limpar-filtros")
 const textoTotalCompras = document.getElementById("texto-total-compras")
+
+const filtroDataInicioVenda = document.getElementById("filtro-data-inicio-venda");
+const filtroDataFimVenda = document.getElementById("filtro-data-fim-venda");
+const filtroEntregaVenda = document.getElementById("filtro-entrega-venda");
+const filtroTipoVenda = document.getElementById("filtro-tipoVenda")
+const botaoLimparFiltrosVenda = document.getElementById("botao-limpar-filtros-venda")
+const textoTotalVendas = document.getElementById("texto-total-vendas")
+
 
 // Seleção em massa
 const textoSelecionados = document.getElementById("texto-selecionados");
@@ -227,6 +265,14 @@ const botaoPaginaAnterior = document.getElementById("botao-pagina-anterior");
 const botaoPaginaProxima = document.getElementById("botao-pagina-proxima");
 const textoPagina = document.getElementById("texto-pagina");
 const seletorItensPorPagina = document.getElementById("itens-por-pagina");
+
+let paginaAtualVenda = 1;
+let itensPorPaginaVenda = 10;
+let indiceEmEdicaoVenda = null;
+const botaoPaginaAnteriorVenda = document.getElementById("botao-pagina-anterior-venda");
+const botaoPaginaProximaVenda = document.getElementById("botao-pagina-proxima-venda");
+const textoPaginaVenda = document.getElementById("texto-pagina-venda");
+const seletorItensPorPaginaVenda = document.getElementById("itens-por-pagina-venda");
 
 
 /* ====================================================================
@@ -250,13 +296,37 @@ botaoNovoLancamento.addEventListener("click", function () {
     abrirModal("Nova Compra", true);
 });
 
+function abrirModalVenda(titulo) {
+    modalTituloVenda.textContent = titulo;
+    modalVenda.style.display = "flex";
+}
+
+function fecharModalVenda() {
+    modalVenda.style.display = "none";
+    formVenda.reset();
+    indiceEmEdicaoVenda = null;
+    formVenda.querySelector("button[type=submit]").textContent = "Adicionar";
+}
+
+botaoNovoVenda.addEventListener("click", function () {
+    abrirModalVenda("Nova Venda", true);
+});
+
 botaoFecharModal.addEventListener("click", fecharModal);
+
+botaoFecharModalVenda.addEventListener("click", fecharModalVenda);
 
 // Fecha o modal ao clicar na área escurecida fora do card (mas não ao
 // clicar dentro do formulário) — checagem via evento.target === modal
 modal.addEventListener("click", function (evento) {
     if (evento.target === modal) {
         fecharModal();
+    }
+});
+
+modalVenda.addEventListener("click", function (evento) {
+    if (evento.target === modalVenda) {
+        fecharModalVenda();
     }
 });
 
@@ -312,6 +382,9 @@ function calcularTotal(preco, frete, quantidade) {
     return (preco * quantidade) + frete;
 }
 
+function calcularTotalVenda(preco, quantidade) {
+    return (preco * quantidade);
+}
 
 /* ====================================================================
    10. PAGINAÇÃO
@@ -418,6 +491,48 @@ form.addEventListener("submit", async function (evento) {
     fecharModal();
 });
 
+formVenda.addEventListener("submit", async function (evento) {
+    evento.preventDefault(); // evita o comportamento padrão de recarregar a página
+
+    const num = parseInt(document.getElementById("num").value);
+    const dataVenda = document.getElementById("dataVenda").value;
+    const nomeVenda = document.getElementById("nomeVenda").value;
+    const loteVenda = parseInt(document.getElementById("loteVenda").value);
+    const tipoVenda = document.getElementById("tipoVenda").value;
+    const precoVenda = parseFloat(document.getElementById("precoVenda").value);
+    const quantidadeVenda = parseInt(document.getElementById("quantidadeVenda").value);
+    const entregaVenda = document.getElementById("entregaVenda").value;
+    const dataEntregaVenda = document.getElementById("dataEntregaVenda").value;
+
+    // Dados comuns a todos os casos (novo, edição, ou cada cópia de uma repetição)
+    const dadosBase = {
+        uid: auth.currentUser.uid,
+        num: parseInt(num),
+        dataVenda: dataVenda,
+        nomeVenda: nomeVenda,
+        loteVenda: parseInt(loteVenda),
+        tipoVenda: tipoVenda,
+        precoVenda: precoVenda,
+        quantidadeVenda: quantidadeVenda,
+        entregaVenda: entregaVenda,
+        dataEntregaVenda: dataEntregaVenda,
+        totalVenda: calcularTotalVenda(precoVenda, quantidadeVenda),
+    };
+    console.log(dadosBase)
+    if (indiceEmEdicaoVenda === null) {
+        await addDoc(collection(db, "vendas"), { ...dadosBase, data: dataVenda });
+    } else {
+        // Editando um lançamento existente: atualiza o documento pelo ID salvo
+        const idDocumento = vendas[indiceEmEdicaoVenda].id;
+        await updateDoc(doc(db, "vendas", idDocumento), { ...dadosBase, data: dataVenda });
+        indiceEmEdicaoVenda = null;
+        formVenda.querySelector("button[type=submit]").textContent = "Adicionar";
+    }
+
+
+    formVenda.reset();
+    fecharModalVenda();
+});
 
 /* ====================================================================
    13. EDITAR E EXCLUIR (individual)
@@ -578,5 +693,136 @@ function renderizar() {
     idsPaginaAtual = lancamentosDaPagina.map(function (item) { return item.id; });
     atualizarBarraSelecao();
     textoTotalCompras.textContent = "Total: " + lancamentosFiltrados.length + " lançamento(s)";
+
+}
+
+function renderizarVendas() {
+    listaVendas.innerHTML = "";
+
+    // --- Valores atuais dos filtros ---
+    const dataInicioVenda = filtroDataInicioVenda.value
+    const dataFimVenda = filtroDataFimVenda.value
+    const tipoVenda = filtroTipoVenda.value
+    const entregaVenda = filtroEntregaVenda.value
+
+    // --- Filtra e ordena (mais recente primeiro) ---
+    const lancamentosFiltradosVenda = vendas.filter(function (item) {
+        const passaDataInicioVenda = dataInicioVenda === "" || item.dataVenda >= dataInicioVenda;
+        const passaDataFimVenda = dataFimVenda === "" || item.dataVenda <= dataFimVenda;
+        const passaEntregaVenda = entregaVenda === "" || item.entregaVenda === entregaVenda;
+        const passaTipoVenda = tipoVenda === "" || item.tipoVenda === tipoVenda;
+        return passaDataInicioVenda && passaDataFimVenda && passaEntregaVenda && passaTipoVenda;
+    }).sort(function (a, b) {
+        return b.dataVenda.localeCompare(a.dataVenda);
+    });
+    console.log(lancamentosFiltradosVenda);
+    // --- Paginação: calcula o total de páginas e o recorte da página atual ---
+    const totalPaginasVenda = Math.max(1, Math.ceil(lancamentosFiltradosVenda.length / itensPorPagina));
+
+    // Evita ficar numa página que deixou de existir (ex: filtro reduziu o total)
+    if (paginaAtualVenda > totalPaginasVenda) {
+        paginaAtualVenda = totalPaginasVenda;
+    }
+
+    const inicio = (paginaAtualVenda - 1) * itensPorPaginaVenda;
+    const fim = inicio + itensPorPaginaVenda;
+    const lancamentosDaPaginaVenda = lancamentosFiltradosVenda.slice(inicio, fim);
+
+    textoPaginaVenda.textContent = "Página " + paginaAtualVenda + " de " + totalPaginasVenda;
+    botaoPaginaAnteriorVenda.disabled = paginaAtualVenda === 1;
+    botaoPaginaProximaVenda.disabled = paginaAtualVenda === totalPaginasVenda;
+
+    // --- Desenha uma linha <tr> para cada item da página ---
+    lancamentosDaPaginaVenda.forEach(function (item) {
+        const linha = document.createElement("tr");
+
+        // Checkbox de seleção: nasce marcado/desmarcado consultando o
+        // Set "selecionados" — ele é sempre a fonte da verdade, não o DOM
+        const celulaSelecionar = document.createElement("td");
+        const checkboxLinha = document.createElement("input");
+        checkboxLinha.type = "checkbox";
+        checkboxLinha.checked = selecionadosVenda.has(item.id);
+        checkboxLinha.addEventListener("change", function () {
+            if (checkboxLinha.checked) {
+                selecionadosVenda.add(item.id);
+            } else {
+                selecionadosVenda.delete(item.id);
+            }
+            atualizarBarraSelecao();
+        });
+        celulaSelecionar.appendChild(checkboxLinha);
+
+        // Células de dados da venda
+        const celulaNum = document.createElement("td");
+        celulaNum.textContent = item.num;
+
+        const celulaDataVenda = document.createElement("td");
+        celulaDataVenda.textContent = formatarData(item.dataVenda);
+
+        const celulaNome = document.createElement("td");
+        celulaNome.textContent = item.nomeVenda;
+
+        const celulaLote = document.createElement("td");
+        celulaLote.textContent = item.loteVenda;
+
+        const celulaTipo = document.createElement("td");
+        celulaTipo.textContent = item.tipoVenda
+
+        const celulaPreco = document.createElement("td");
+        celulaPreco.textContent = formatarMoeda(item.precoVenda);
+
+        const celulaQuantidade = document.createElement("td");
+        celulaQuantidade.textContent = item.quantidadeVenda;
+
+        const celulaTotal = document.createElement("td");
+        celulaTotal.textContent = formatarMoeda(item.totalVenda);
+
+        const celulaEntrega = document.createElement("td");
+        celulaEntrega.textContent = item.entregaVenda;
+
+        const celulaDataEntrega = document.createElement("td");
+        celulaDataEntrega.textContent = item.dataEntregaVenda ? formatarData(item.dataEntregaVenda) : "----------------";
+
+        // Célula de ações: botões Editar e Excluir
+        const celulaAcoes = document.createElement("td");
+        const botaoEditar = document.createElement("button");
+        botaoEditar.textContent = "Editar";
+        botaoEditar.addEventListener("click", function () {
+            const indiceReal = vendas.indexOf(item);
+            editarLancamento(indiceReal);
+        });
+
+        const botaoExcluir = document.createElement("button");
+        botaoExcluir.textContent = "Excluir";
+        botaoExcluir.addEventListener("click", function () {
+            const indiceReal = vendas.indexOf(item);
+            excluirLancamento(indiceReal);
+        });
+
+        celulaAcoes.appendChild(botaoEditar);
+        celulaAcoes.appendChild(botaoExcluir);
+
+        // Monta a linha na ordem das colunas da tabela
+        linha.appendChild(celulaSelecionar);
+        linha.appendChild(celulaNum);
+        linha.appendChild(celulaDataVenda);
+        linha.appendChild(celulaNome);
+        linha.appendChild(celulaLote);
+        linha.appendChild(celulaTipo);
+        linha.appendChild(celulaPreco);
+        linha.appendChild(celulaQuantidade);
+        linha.appendChild(celulaTotal);
+        linha.appendChild(celulaEntrega);
+        linha.appendChild(celulaDataEntrega);
+        linha.appendChild(celulaAcoes);
+
+        listaVendas.appendChild(linha);
+    });
+
+    // --- Atualiza a barra de seleção e o contador de total ---
+    // (idsPaginaAtual precisa ser atualizado ANTES de atualizarBarraSelecao)
+    idsPaginaAtualVenda = lancamentosDaPaginaVenda.map(function (item) { return item.id; });
+    atualizarBarraSelecao();
+    textoTotalVendas.textContent = "Total: " + lancamentosFiltradosVenda.length + " lançamento(s)";
 
 }

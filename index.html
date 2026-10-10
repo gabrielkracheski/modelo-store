@@ -198,6 +198,146 @@
 
                 </section>
 
+                <section id="secao-vendas" class="secao">
+                    <h1>Vendas</h1>
+
+                    <div class="acoes-vendas">
+                        <button id="botao-novo-venda" class="botao-primario botao-compacto" type="button">+ Nova
+                            Venda</button>
+                    </div>
+
+                    <div id="modal-venda" class="modal-overlay" style="display: none;">
+                        <div class="modal-conteudo">
+                            <div class="modal-cabecalho">
+                                <h2 id="modal-titulo-venda">Nova Venda</h2>
+                                <button id="botao-fechar-modal-venda" class="botao-fechar"
+                                    type="button">&times;</button>
+                            </div>
+
+                            <form id="form-lancamento-venda">
+                                <label for="num">Nº da Venda:</label>
+                                <input type="number" id="num" required>
+
+                                <label for="dataVenda">Data Venda:</label>
+                                <input type="date" id="dataVenda" required>
+
+                                <label for="nomeVenda">Nome:</label>
+                                <input type="text" id="nomeVenda" required>
+
+                                <label for="loteVenda">Lote:</label>
+                                <input type="number" id="loteVenda" required>
+
+                                <label for="tipoVenda">Tipo:</label>
+                                <select id="tipoVenda" required>
+                                    <option value="Ampola">Ampola</option>
+                                    <option value="Caixa">Caixa</option>
+                                </select>
+
+                                <label for="precoVenda">Preço:</label>
+                                <input type="number" id="precoVenda" required>
+
+                                <label for="quantidadeVenda">Quantidade:</label>
+                                <input type="number" id="quantidadeVenda" required>
+
+                                <label for="entregaVenda">Entrega:</label>
+                                <select id="entregaVenda" required>
+                                    <option value="Sim">Sim</option>
+                                    <option value="Não">Não</option>
+                                </select>
+
+                                <label for="dataEntregaVenda">Data Entrega:</label>
+                                <input type="date" id="dataEntregaVenda">
+
+                                <!-- Texto do botão alterna entre "Adicionar"/"Salvar alteração" via JS -->
+                                <button type="submit">Adicionar</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <p class="rotulo-secao">Filtros</p>
+                    <div class="barra-filtros">
+                        <div class="campo">
+                            <label for="filtro-data-inicio-venda">Venda de:</label>
+                            <input type="date" id="filtro-data-inicio-venda">
+                        </div>
+
+                        <div class="campo">
+                            <label for="filtro-data-fim-venda">Até:</label>
+                            <input type="date" id="filtro-data-fim-venda">
+                        </div>
+
+                        <div class="campo">
+                            <label for="filtro-tipoVenda">Tipo Venda:</label>
+                            <select id="filtro-tipoVenda">
+                                <option value="">Todas</option>
+                                <option value="Ampola">Ampola</option>
+                                <option value="Caixa">Caixa</option>
+                            </select>
+                        </div>
+
+                        <div class="campo">
+                            <label for="filtro-entrega-venda">Entrega:</label>
+                            <select id="filtro-entrega-venda">
+                                <option value="">Todas</option>
+                                <option value="Sim">Sim</option>
+                                <option value="Não">Não</option>
+                            </select>
+                        </div>
+                        <button id="botao-limpar-filtros-venda" class="botao-secundario" type="button">Limpar
+                            filtros</button>
+                    </div>
+
+                    <div class="tabela-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <!-- Checkbox "selecionar todos" da página atual (ver seleção em massa) -->
+                                    <th><input type="checkbox" id="selecionar-todos-venda"></th>
+                                    <th>Nº</th>
+                                    <th>Data Venda</th>
+                                    <th>Nome</th>
+                                    <th>Lote</th>
+                                    <th>Tipo</th>
+                                    <th>Preço de Venda</th>
+                                    <th>Quantidade</th>
+                                    <th>Total</th>
+                                    <th>Entrega</th>
+                                    <th>Data Entrega</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-vendas"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Contador de total + ações sobre os itens selecionados -->
+                    <div class="rodape-tabela">
+                        <span id="texto-total-vendas"></span>
+
+                        <div class="acoes-selecao">
+                            <span id="texto-selecionados"></span>
+                            <button id="botao-excluir-selecionados-venda" class="botao-secundario botao-compacto"
+                                type="button" disabled>Excluir selecionados</button>
+                        </div>
+                    </div>
+
+                    <!-- Paginação: navega pelos lançamentos filtrados, itensPorPagina de cada vez -->
+                    <div class="paginacao">
+                        <button id="botao-pagina-anterior-venda" type="button">Anterior</button>
+                        <span id="texto-pagina-venda">Página 1 de 1</span>
+                        <button id="botao-pagina-proxima-venda" type="button">Próxima</button>
+                        <div class="campo campo-itens-pagina">
+                            <label for="itens-por-pagina-venda">Itens por página</label>
+                            <select id="itens-por-pagina-venda">
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                            </select>
+                        </div>
+                    </div>
+
+                </section>
+
             </main>
 
         </div>

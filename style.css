@@ -419,6 +419,14 @@ button[type="submit"] {
     margin-bottom: 24px;
 }
 
+//VENDAS
+
+.acoes-vendas {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
 /* Reaproveita .botao-primario/.botao-secundario, mas cabendo no
    tamanho do texto em vez de esticar 100% (ver definição original) */
 .botao-compacto {
