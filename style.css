@@ -419,8 +419,6 @@ button[type="submit"] {
     margin-bottom: 24px;
 }
 
-//VENDAS
-
 .acoes-vendas {
     display: flex;
     gap: 12px;
@@ -435,12 +433,14 @@ button[type="submit"] {
 }
 
 /* Última célula de cada linha (coluna Ações): botões lado a lado */
-#lista-compras td:last-child {
+#lista-compras td:last-child,
+#lista-vendas td:last-child {
     display: flex;
     gap: 8px;
 }
 
-#lista-compras button {
+#lista-compras button,
+#lista-vendas button {
     padding: 6px 12px;
     border-radius: 6px;
     font-size: 0.85rem;
@@ -449,18 +449,21 @@ button[type="submit"] {
     color: var(--cor-texto);
 }
 
-#lista-compras button:hover {
+#lista-compras button:hover,
+#lista-vendas button:hover {
     background: var(--cor-borda);
 }
 
 /* :last-child pega o botão "Excluir" (sempre o 2º/último botão de cada
    linha) e destaca em vermelho — convenção visual para ações destrutivas */
-#lista-compras button:last-child {
+#lista-compras button:last-child,
+#lista-vendas button:last-child {
     border-color: #ef4444;
     color: #ef4444;
 }
 
-#lista-compras button:last-child:hover {
+#lista-compras button:last-child:hover,
+#lista-vendas button:last-child:hover {
     background: #fee2e2;
 }
 

@@ -358,6 +358,27 @@ botaoLimparFiltros.addEventListener("click", function () {
     renderizar()
 });
 
+//Filtros vendas
+filtroDataInicioVenda.addEventListener("change", function () {
+    renderizarVendas();
+});
+filtroDataFimVenda.addEventListener("change", function () {
+    renderizarVendas();
+});
+filtroEntregaVenda.addEventListener("change", function () {
+    renderizarVendas();
+});
+filtroTipoVenda.addEventListener("change", function () {
+    renderizarVendas();
+});
+botaoLimparFiltrosVenda.addEventListener("click", function () {
+    filtroDataInicioVenda.value = "";
+    filtroDataFimVenda.value = ""
+    filtroEntregaVenda.value = ""
+    filtroTipoVenda.value
+    renderizarVendas()
+});
+
 
 /* ====================================================================
    9. FUNÇÕES AUXILIARES (moeda, data, total)
@@ -556,6 +577,24 @@ function editarLancamento(indice) {
     abrirModal("Editar Lançamento", false);
 }
 
+function editarLancamentoVenda(indice) {
+    const item = vendas[indice];
+
+    document.getElementById("num").value = item.num;
+    document.getElementById("dataVenda").value = item.dataVenda;
+    document.getElementById("nomeVenda").value = item.nomeVenda;
+    document.getElementById("loteVenda").value = item.loteVenda;
+    document.getElementById("tipoVenda").value = item.tipoVenda;
+    document.getElementById("precoVenda").value = item.precoVenda;
+    document.getElementById("quantidadeVenda").value = item.quantidadeVenda;
+    document.getElementById("entregaVenda").value = item.entregaVenda;
+    document.getElementById("dataEntregaVenda").value = item.dataEntregaVenda;
+
+    indiceEmEdicaoVenda = indice;
+    formVenda.querySelector("button[type=submit]").textContent = "Salvar alteração";
+    abrirModalVenda("Editar Lançamento", false);
+}
+
 /* ---------- Exclusão individual ---------- */
 async function excluirLancamento(indice) {
     const confirmar = confirm("Tem certeza que deseja excluir este lançamento?");
@@ -568,6 +607,16 @@ async function excluirLancamento(indice) {
     // exclusão no Firestore e atualiza a tela sozinho
 }
 
+async function excluirLancamentoVenda(indice) {
+    const confirmar = confirm("Tem certeza que deseja excluir este lançamento?");
+
+    if (!confirmar) return;
+
+    const idDocumento = vendas[indice].id;
+    await deleteDoc(doc(db, "vendas", idDocumento));
+    // Não precisa chamar renderizar() aqui: o onSnapshot detecta a
+    // exclusão no Firestore e atualiza a tela sozinho
+}
 
 /* ====================================================================
    14. RENDERIZAÇÃO DA TABELA DE COMPRAS
@@ -789,14 +838,14 @@ function renderizarVendas() {
         botaoEditar.textContent = "Editar";
         botaoEditar.addEventListener("click", function () {
             const indiceReal = vendas.indexOf(item);
-            editarLancamento(indiceReal);
+            editarLancamentoVenda(indiceReal);
         });
 
         const botaoExcluir = document.createElement("button");
         botaoExcluir.textContent = "Excluir";
         botaoExcluir.addEventListener("click", function () {
             const indiceReal = vendas.indexOf(item);
-            excluirLancamento(indiceReal);
+            excluirLancamentoVenda(indiceReal);
         });
 
         celulaAcoes.appendChild(botaoEditar);
