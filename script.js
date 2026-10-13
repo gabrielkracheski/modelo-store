@@ -181,13 +181,18 @@ onAuthStateChanged(auth, function (usuario) {
         if (pararDeEscutar) {
             pararDeEscutar(); // evita continuar escutando dados de uma sessão encerrada
         }
-        if (pararDeEscutarVendas) {
-            pararDeEscutarVendas();
-            pararDeEscutarVendas = null;
+        if (pararDeEscutarVenda) {
+            pararDeEscutarVenda();
+            pararDeEscutarVenda = null;
         }
 
         compras = [];
         vendas = [];
+        selecionados.clear();
+        selecionadosVenda.clear();
+        renderizar();
+        renderizarVendas();
+        loginErro.textContent = "";
     }
 });
 
@@ -250,12 +255,17 @@ const filtroEntregaVenda = document.getElementById("filtro-entrega-venda");
 const filtroTipoVenda = document.getElementById("filtro-tipoVenda")
 const botaoLimparFiltrosVenda = document.getElementById("botao-limpar-filtros-venda")
 const textoTotalVendas = document.getElementById("texto-total-vendas")
+const filtroPagoVenda = document.getElementById("filtro-pago-venda");
 
 
 // Seleção em massa
 const textoSelecionados = document.getElementById("texto-selecionados");
 const botaoExcluirSelecionados = document.getElementById("botao-excluir-selecionados");
 const selecionarTodos = document.getElementById("selecionar-todos");
+
+const textoSelecionadosVenda = document.getElementById("texto-selecionados-venda");
+const botaoExcluirSelecionadosVenda = document.getElementById("botao-excluir-selecionados-venda");
+const selecionarTodosVenda = document.getElementById("selecionar-todos-venda");
 
 // Controle de paginação e edição
 let paginaAtual = 1;
@@ -362,20 +372,29 @@ botaoLimparFiltros.addEventListener("click", function () {
 filtroDataInicioVenda.addEventListener("change", function () {
     renderizarVendas();
 });
+
 filtroDataFimVenda.addEventListener("change", function () {
     renderizarVendas();
 });
+
 filtroEntregaVenda.addEventListener("change", function () {
     renderizarVendas();
 });
+
 filtroTipoVenda.addEventListener("change", function () {
     renderizarVendas();
 });
+
+filtroPagoVenda.addEventListener("change", function () {
+    renderizarVendas();
+});
+
 botaoLimparFiltrosVenda.addEventListener("click", function () {
     filtroDataInicioVenda.value = "";
     filtroDataFimVenda.value = ""
     filtroEntregaVenda.value = ""
-    filtroTipoVenda.value
+    filtroTipoVenda.value = ""
+    filtroPagoVenda.value = "";
     renderizarVendas()
 });
 
@@ -422,11 +441,25 @@ botaoPaginaProxima.addEventListener("click", function () {
 
 seletorItensPorPagina.addEventListener("change", function () {
     itensPorPagina = parseInt(seletorItensPorPagina.value);
-    console.log(itensPorPagina)
     paginaAtual = 1;
     renderizar();
 });
 
+botaoPaginaAnteriorVenda.addEventListener("click", function () {
+    paginaAtualVenda--;
+    renderizarVendas();
+});
+
+botaoPaginaProximaVenda.addEventListener("click", function () {
+    paginaAtualVenda++;
+    renderizarVendas();
+});
+
+seletorItensPorPaginaVenda.addEventListener("change", function () {
+    itensPorPaginaVenda = parseInt(seletorItensPorPaginaVenda.value);
+    paginaAtualVenda = 1;
+    renderizarVendas();
+});
 
 /* ====================================================================
    11. SELEÇÃO EM MASSA: "selecionar todos" + exclusão
@@ -443,6 +476,15 @@ function atualizarBarraSelecao() {
         idsPaginaAtual.every(function (id) { return selecionados.has(id); });
 }
 
+function atualizarBarraSelecaoVenda() {
+    const quantidade = selecionadosVenda.size;
+    textoSelecionadosVenda.textContent = quantidade > 0 ? quantidade + " selecionado(s)" : "";
+    botaoExcluirSelecionadosVenda.disabled = quantidade === 0;
+
+    selecionarTodosVenda.checked = idsPaginaAtualVenda.length > 0 &&
+        idsPaginaAtualVenda.every(function (id) { return selecionadosVenda.has(id); });
+}
+
 selecionarTodos.addEventListener("change", function () {
     // Marca/desmarca só os IDs da PÁGINA ATUAL (não todos os filtrados)
     idsPaginaAtual.forEach(function (id) {
@@ -455,6 +497,17 @@ selecionarTodos.addEventListener("change", function () {
     renderizar();
 });
 
+selecionarTodosVenda.addEventListener("change", function () {
+    // Marca/desmarca só os IDs da PÁGINA ATUAL (não todos os filtrados)
+    idsPaginaAtualVenda.forEach(function (id) {
+        if (selecionarTodosVenda.checked) {
+            selecionadosVenda.add(id);
+        } else {
+            selecionadosVenda.delete(id);
+        }
+    });
+    renderizarVendas();
+});
 
 botaoExcluirSelecionados.addEventListener("click", async function () {
     const confirmar = confirm("Excluir " + selecionados.size + " lançamento(s) selecionado(s)? Esta ação não pode ser desfeita.");
@@ -467,92 +520,121 @@ botaoExcluirSelecionados.addEventListener("click", async function () {
     }
 
     selecionados.clear();
+    atualizarBarraSelecao();
     renderizar();
     // Não precisa renderizar() manualmente: o onSnapshot detecta as
     // exclusões e atualiza a tela sozinho
 });
 
+botaoExcluirSelecionadosVenda.addEventListener("click", async function () {
+    const confirmar = confirm("Excluir " + selecionadosVenda.size + " lançamento(s) selecionado(s)? Esta ação não pode ser desfeita.");
+    if (!confirmar) return;
+
+    // for...of funciona em qualquer iterável, incluindo Set (que não
+    // tem .forEach com a mesma assinatura simples dos arrays)
+    for (const id of selecionadosVenda) {
+        await deleteDoc(doc(db, "vendas", id));
+    }
+
+    selecionadosVenda.clear();
+    atualizarBarraSelecaoVenda();
+    renderizarVendas();
+    // Não precisa renderizar() manualmente: o onSnapshot detecta as
+    // exclusões e atualiza a tela sozinho
+});
 
 /* ====================================================================
    12. ENVIO DO FORMULÁRIO (criar / editar)
    ==================================================================== */
 form.addEventListener("submit", async function (evento) {
-    evento.preventDefault(); // evita o comportamento padrão de recarregar a página
+    evento.preventDefault();
 
-    const preco = parseFloat(document.getElementById("preco").value);
-    const frete = parseFloat(document.getElementById("frete").value);
-    const quantidade = parseInt(document.getElementById("quantidade").value);
-    const dataPedido = document.getElementById("dataPedido").value;
+    const botaoSubmit = form.querySelector("button[type=submit]");
+    if (botaoSubmit.disabled) return;   // trava extra contra duplo clique
+    botaoSubmit.disabled = true;
 
-    // Dados comuns a todos os casos (novo, edição, ou cada cópia de uma repetição)
-    const dadosBase = {
-        uid: auth.currentUser.uid,
-        lote: parseInt(document.getElementById("lote").value),
-        dataPedido: dataPedido,
-        preco: parseFloat(preco),
-        frete: parseFloat(frete),
-        quantidade: parseInt(quantidade),
-        total: calcularTotal(preco, frete, quantidade),
-        entrega: document.getElementById("entrega").value,
-        dataEntrega: document.getElementById("dataEntrega").value,
-    };
+    try {
+        const preco = parseFloat(document.getElementById("preco").value);
+        const frete = parseFloat(document.getElementById("frete").value);
+        const quantidade = parseInt(document.getElementById("quantidade").value);
+        const dataPedido = document.getElementById("dataPedido").value;
 
-    if (indiceEmEdicao === null) {
-        await addDoc(collection(db, "compras"), { ...dadosBase, data: dataPedido });
-    } else {
-        // Editando um lançamento existente: atualiza o documento pelo ID salvo
-        const idDocumento = compras[indiceEmEdicao].id;
-        await updateDoc(doc(db, "compras", idDocumento), { ...dadosBase, data: dataPedido });
-        indiceEmEdicao = null;
-        form.querySelector("button[type=submit]").textContent = "Adicionar";
+        const dadosBase = {
+            uid: auth.currentUser.uid,
+            lote: parseInt(document.getElementById("lote").value),
+            dataPedido: dataPedido,
+            preco: preco,
+            frete: frete,
+            quantidade: quantidade,
+            total: calcularTotal(preco, frete, quantidade),
+            entrega: document.getElementById("entrega").value,
+            dataEntrega: document.getElementById("dataEntrega").value,
+        };
+
+        if (indiceEmEdicao === null) {
+            await addDoc(collection(db, "compras"), { ...dadosBase, data: dataPedido });
+        } else {
+            const idDocumento = compras[indiceEmEdicao].id;
+            await updateDoc(doc(db, "compras", idDocumento), { ...dadosBase, data: dataPedido });
+        }
+
+        fecharModal();   // já faz form.reset(), zera o índice e volta o texto do botão
+    } catch (erro) {
+        console.error(erro);
+        alert("Não foi possível salvar. Verifique sua conexão e tente novamente.");
+    } finally {
+        botaoSubmit.disabled = false;
     }
-
-
-    form.reset();
-    fecharModal();
 });
 
 formVenda.addEventListener("submit", async function (evento) {
-    evento.preventDefault(); // evita o comportamento padrão de recarregar a página
+    evento.preventDefault();
 
-    const num = parseInt(document.getElementById("num").value);
-    const dataVenda = document.getElementById("dataVenda").value;
-    const nomeVenda = document.getElementById("nomeVenda").value;
-    const loteVenda = parseInt(document.getElementById("loteVenda").value);
-    const tipoVenda = document.getElementById("tipoVenda").value;
-    const precoVenda = parseFloat(document.getElementById("precoVenda").value);
-    const quantidadeVenda = parseInt(document.getElementById("quantidadeVenda").value);
-    const entregaVenda = document.getElementById("entregaVenda").value;
-    const dataEntregaVenda = document.getElementById("dataEntregaVenda").value;
+    const botaoSubmit = formVenda.querySelector("button[type=submit]");
+    if (botaoSubmit.disabled) return;
+    botaoSubmit.disabled = true;
 
-    // Dados comuns a todos os casos (novo, edição, ou cada cópia de uma repetição)
-    const dadosBase = {
-        uid: auth.currentUser.uid,
-        num: parseInt(num),
-        dataVenda: dataVenda,
-        nomeVenda: nomeVenda,
-        loteVenda: parseInt(loteVenda),
-        tipoVenda: tipoVenda,
-        precoVenda: precoVenda,
-        quantidadeVenda: quantidadeVenda,
-        entregaVenda: entregaVenda,
-        dataEntregaVenda: dataEntregaVenda,
-        totalVenda: calcularTotalVenda(precoVenda, quantidadeVenda),
-    };
-    console.log(dadosBase)
-    if (indiceEmEdicaoVenda === null) {
-        await addDoc(collection(db, "vendas"), { ...dadosBase, data: dataVenda });
-    } else {
-        // Editando um lançamento existente: atualiza o documento pelo ID salvo
-        const idDocumento = vendas[indiceEmEdicaoVenda].id;
-        await updateDoc(doc(db, "vendas", idDocumento), { ...dadosBase, data: dataVenda });
-        indiceEmEdicaoVenda = null;
-        formVenda.querySelector("button[type=submit]").textContent = "Adicionar";
+    try {
+        const num = parseInt(document.getElementById("num").value);
+        const dataVenda = document.getElementById("dataVenda").value;
+        const nomeVenda = document.getElementById("nomeVenda").value;
+        const loteVenda = parseInt(document.getElementById("loteVenda").value);
+        const tipoVenda = document.getElementById("tipoVenda").value;
+        const precoVenda = parseFloat(document.getElementById("precoVenda").value);
+        const quantidadeVenda = parseInt(document.getElementById("quantidadeVenda").value);
+        const entregaVenda = document.getElementById("entregaVenda").value;
+        const dataEntregaVenda = document.getElementById("dataEntregaVenda").value;
+        const pagoVenda = document.getElementById("pagoVenda").value;
+
+        const dadosBase = {
+            uid: auth.currentUser.uid,
+            num: num,
+            dataVenda: dataVenda,
+            nomeVenda: nomeVenda,
+            loteVenda: loteVenda,
+            tipoVenda: tipoVenda,
+            precoVenda: precoVenda,
+            quantidadeVenda: quantidadeVenda,
+            entregaVenda: entregaVenda,
+            dataEntregaVenda: dataEntregaVenda,
+            totalVenda: calcularTotalVenda(precoVenda, quantidadeVenda),
+            pagoVenda: pagoVenda,
+        };
+
+        if (indiceEmEdicaoVenda === null) {
+            await addDoc(collection(db, "vendas"), { ...dadosBase, data: dataVenda });
+        } else {
+            const idDocumento = vendas[indiceEmEdicaoVenda].id;
+            await updateDoc(doc(db, "vendas", idDocumento), { ...dadosBase, data: dataVenda });
+        }
+
+        fecharModalVenda();
+    } catch (erro) {
+        console.error(erro);
+        alert("Não foi possível salvar. Verifique sua conexão e tente novamente.");
+    } finally {
+        botaoSubmit.disabled = false;
     }
-
-
-    formVenda.reset();
-    fecharModalVenda();
 });
 
 /* ====================================================================
@@ -589,6 +671,7 @@ function editarLancamentoVenda(indice) {
     document.getElementById("quantidadeVenda").value = item.quantidadeVenda;
     document.getElementById("entregaVenda").value = item.entregaVenda;
     document.getElementById("dataEntregaVenda").value = item.dataEntregaVenda;
+    document.getElementById("pagoVenda").value = item.pagoVenda || "Não";
 
     indiceEmEdicaoVenda = indice;
     formVenda.querySelector("button[type=submit]").textContent = "Salvar alteração";
@@ -605,6 +688,8 @@ async function excluirLancamento(indice) {
     await deleteDoc(doc(db, "compras", idDocumento));
     // Não precisa chamar renderizar() aqui: o onSnapshot detecta a
     // exclusão no Firestore e atualiza a tela sozinho
+    selecionados.delete(idDocumento);
+    renderizar();
 }
 
 async function excluirLancamentoVenda(indice) {
@@ -616,6 +701,8 @@ async function excluirLancamentoVenda(indice) {
     await deleteDoc(doc(db, "vendas", idDocumento));
     // Não precisa chamar renderizar() aqui: o onSnapshot detecta a
     // exclusão no Firestore e atualiza a tela sozinho
+    selecionadosVenda.delete(idDocumento);
+    renderizarVendas();
 }
 
 /* ====================================================================
@@ -701,7 +788,7 @@ function renderizar() {
         celulaEntrega.textContent = item.entrega;
 
         const celulaDataEntrega = document.createElement("td");
-        celulaDataEntrega.textContent = item.dataEntrega ? formatarData(item.dataEntrega) : "----------------";
+        celulaDataEntrega.textContent = item.dataEntrega ? formatarData(item.dataEntrega) : "-";
 
         // Célula de ações: botões Editar e Excluir
         const celulaAcoes = document.createElement("td");
@@ -753,6 +840,7 @@ function renderizarVendas() {
     const dataFimVenda = filtroDataFimVenda.value
     const tipoVenda = filtroTipoVenda.value
     const entregaVenda = filtroEntregaVenda.value
+    const pagoVenda = filtroPagoVenda.value;
 
     // --- Filtra e ordena (mais recente primeiro) ---
     const lancamentosFiltradosVenda = vendas.filter(function (item) {
@@ -760,13 +848,14 @@ function renderizarVendas() {
         const passaDataFimVenda = dataFimVenda === "" || item.dataVenda <= dataFimVenda;
         const passaEntregaVenda = entregaVenda === "" || item.entregaVenda === entregaVenda;
         const passaTipoVenda = tipoVenda === "" || item.tipoVenda === tipoVenda;
-        return passaDataInicioVenda && passaDataFimVenda && passaEntregaVenda && passaTipoVenda;
+        const passaPagoVenda = pagoVenda === "" || (item.pagoVenda || "Não") === pagoVenda;
+        return passaDataInicioVenda && passaDataFimVenda && passaEntregaVenda && passaTipoVenda && passaPagoVenda;
     }).sort(function (a, b) {
         return b.dataVenda.localeCompare(a.dataVenda);
     });
-    console.log(lancamentosFiltradosVenda);
+
     // --- Paginação: calcula o total de páginas e o recorte da página atual ---
-    const totalPaginasVenda = Math.max(1, Math.ceil(lancamentosFiltradosVenda.length / itensPorPagina));
+    const totalPaginasVenda = Math.max(1, Math.ceil(lancamentosFiltradosVenda.length / itensPorPaginaVenda));
 
     // Evita ficar numa página que deixou de existir (ex: filtro reduziu o total)
     if (paginaAtualVenda > totalPaginasVenda) {
@@ -797,7 +886,7 @@ function renderizarVendas() {
             } else {
                 selecionadosVenda.delete(item.id);
             }
-            atualizarBarraSelecao();
+            atualizarBarraSelecaoVenda();
         });
         celulaSelecionar.appendChild(checkboxLinha);
 
@@ -830,7 +919,12 @@ function renderizarVendas() {
         celulaEntrega.textContent = item.entregaVenda;
 
         const celulaDataEntrega = document.createElement("td");
-        celulaDataEntrega.textContent = item.dataEntregaVenda ? formatarData(item.dataEntregaVenda) : "----------------";
+        celulaDataEntrega.textContent = item.dataEntregaVenda ? formatarData(item.dataEntregaVenda) : "-";
+
+        const celulaPago = document.createElement("td");
+        const valorPago = item.pagoVenda || "Não";
+        celulaPago.textContent = valorPago;
+        celulaPago.className = valorPago === "Sim" ? "pago-sim" : "pago-nao";
 
         // Célula de ações: botões Editar e Excluir
         const celulaAcoes = document.createElement("td");
@@ -863,6 +957,7 @@ function renderizarVendas() {
         linha.appendChild(celulaTotal);
         linha.appendChild(celulaEntrega);
         linha.appendChild(celulaDataEntrega);
+        linha.appendChild(celulaPago);
         linha.appendChild(celulaAcoes);
 
         listaVendas.appendChild(linha);
@@ -871,7 +966,7 @@ function renderizarVendas() {
     // --- Atualiza a barra de seleção e o contador de total ---
     // (idsPaginaAtual precisa ser atualizado ANTES de atualizarBarraSelecao)
     idsPaginaAtualVenda = lancamentosDaPaginaVenda.map(function (item) { return item.id; });
-    atualizarBarraSelecao();
+    atualizarBarraSelecaoVenda();
     textoTotalVendas.textContent = "Total: " + lancamentosFiltradosVenda.length + " lançamento(s)";
 
 }

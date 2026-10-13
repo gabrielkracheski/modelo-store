@@ -106,7 +106,7 @@
                                 <input type="number" id="frete" step="0.01" required>
 
                                 <label for="quantidade">Quantidade:</label>
-                                <input type="number" id="quantidade" required>
+                                <input type="number" id="quantidade" min="1" step="1" required>
 
                                 <label for="entrega">Entrega:</label>
                                 <select id="entrega" required>
@@ -234,10 +234,10 @@
                                 </select>
 
                                 <label for="precoVenda">Preço:</label>
-                                <input type="number" id="precoVenda" required>
+                                <input type="number" id="precoVenda" step="0.01" required>
 
                                 <label for="quantidadeVenda">Quantidade:</label>
-                                <input type="number" id="quantidadeVenda" required>
+                                <input type="number" id="quantidadeVenda" min="1" step="1" required>
 
                                 <label for="entregaVenda">Entrega:</label>
                                 <select id="entregaVenda" required>
@@ -248,6 +248,11 @@
                                 <label for="dataEntregaVenda">Data Entrega:</label>
                                 <input type="date" id="dataEntregaVenda">
 
+                                <label for="pagoVenda">Pago:</label>
+                                <select id="pagoVenda" required>
+                                    <option value="Sim">Sim</option>
+                                    <option value="Não">Não</option>
+                                </select>
                                 <!-- Texto do botão alterna entre "Adicionar"/"Salvar alteração" via JS -->
                                 <button type="submit">Adicionar</button>
                             </form>
@@ -283,6 +288,16 @@
                                 <option value="Não">Não</option>
                             </select>
                         </div>
+
+                        <div class="campo">
+                            <label for="filtro-pago-venda">Pago:</label>
+                            <select id="filtro-pago-venda">
+                                <option value="">Todas</option>
+                                <option value="Sim">Sim</option>
+                                <option value="Não">Não</option>
+                            </select>
+                        </div>
+
                         <button id="botao-limpar-filtros-venda" class="botao-secundario" type="button">Limpar
                             filtros</button>
                     </div>
@@ -303,6 +318,7 @@
                                     <th>Total</th>
                                     <th>Entrega</th>
                                     <th>Data Entrega</th>
+                                    <th>Pago</th>
                                     <th>Ações</th>
                                 </tr>
                             </thead>
@@ -315,7 +331,7 @@
                         <span id="texto-total-vendas"></span>
 
                         <div class="acoes-selecao">
-                            <span id="texto-selecionados"></span>
+                            <span id="texto-selecionados-venda"></span>
                             <button id="botao-excluir-selecionados-venda" class="botao-secundario botao-compacto"
                                 type="button" disabled>Excluir selecionados</button>
                         </div>
