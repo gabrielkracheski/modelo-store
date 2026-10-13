@@ -759,6 +759,15 @@ button:focus-visible {
     outline-color: var(--cor-champanhe);
 }
 
+#lote, #num {
+    background: var(--cor-suave);s
+    color: var(--cor-texto-suave);
+    pointer-events: none;
+    /* não recebe clique nem foco */
+    user-select: none;
+    /* texto não pode ser selecionado */
+}
+
 /* Respeita quem desativa animações no sistema */
 @media (prefers-reduced-motion: reduce) {
     * {

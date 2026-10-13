@@ -290,6 +290,29 @@ const seletorItensPorPaginaVenda = document.getElementById("itens-por-pagina-ven
    ==================================================================== */
 
 /* ---------- Modal: reaproveitado tanto para criar quanto editar ---------- */
+
+function proximoLote() {
+    if (compras.length === 0) return 1;
+
+    const lotes = compras.map(function (item) {
+        return Number(item.lote) || 0;
+    });
+
+    return Math.max(...lotes) + 1;
+}
+
+function proximoVenda() {
+    if (vendas.length === 0) return 1;
+
+    const lotes = vendas.map(function (item) {
+        return Number(item.num) || 0;
+    });
+
+    return Math.max(...lotes) + 1;
+}
+
+
+
 function abrirModal(titulo) {
     modalTitulo.textContent = titulo;
     modal.style.display = "flex";
@@ -303,6 +326,7 @@ function fecharModal() {
 }
 
 botaoNovoLancamento.addEventListener("click", function () {
+    document.getElementById("lote").value = proximoLote();
     abrirModal("Nova Compra", true);
 });
 
@@ -319,6 +343,7 @@ function fecharModalVenda() {
 }
 
 botaoNovoVenda.addEventListener("click", function () {
+    document.getElementById("num").value = proximoVenda();
     abrirModalVenda("Nova Venda", true);
 });
 
