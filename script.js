@@ -462,7 +462,7 @@ function formatarMoeda(valor) {
 function formatarPercentual(valor) {
     return valor.toLocaleString("pt-BR", {
         minimumFractionDigits: 1,
-        maximumFractionDigits: 1
+        maximumFractionDigits: 2
     }) + "%";
 }
 
@@ -1072,7 +1072,10 @@ const textoEstoqueCaixasDetalhe = document.getElementById("estoque-caixas-detalh
 const textoEstoqueAmpolas = document.getElementById("estoque-ampolas");
 const textoEstoqueAmpolasDetalhe = document.getElementById("estoque-ampolas-detalhe");
 const listaResumo = document.getElementById("lista-resumo");
-const textoResumoTotais = document.getElementById("texto-resumo-totais");
+const textoTotalVendido = document.getElementById("total-vendido");
+const textoTotalCusto = document.getElementById("total-custo");
+const textoTotalLucro = document.getElementById("total-lucro");
+const textoTotalMargem = document.getElementById("total-margem");
 const textoResumoAviso = document.getElementById("texto-resumo-aviso");
 
 function renderizarResumo() {
@@ -1172,12 +1175,18 @@ function renderizarResumo() {
     // ---------- 4) TOTAIS ----------
     const lucroTotal = somaVendas - somaCusto;
     const margemTotal = somaVendas > 0 ? (lucroTotal / somaVendas) * 100 : 0;
+    const temVendas = vendas.length > 0;
 
-    textoResumoTotais.textContent = vendas.length === 0 ? "" :
-        "Vendido: " + formatarMoeda(somaVendas) +
-        " · Custo: " + formatarMoeda(somaCusto) +
-        " · Lucro: " + formatarMoeda(lucroTotal) +
-        " · Margem: " + formatarPercentual(margemTotal);
+    textoTotalVendido.textContent = formatarMoeda(somaVendas);
+    textoTotalCusto.textContent = formatarMoeda(somaCusto);
+    textoTotalLucro.textContent = formatarMoeda(lucroTotal);
+    textoTotalMargem.textContent = formatarPercentual(margemTotal);
+
+    // Verde se lucro, vermelho se prejuízo (neutro enquanto não há vendas)
+    [textoTotalLucro, textoTotalMargem].forEach(function (elemento) {
+        elemento.classList.toggle("valor-positivo", temVendas && lucroTotal >= 0);
+        elemento.classList.toggle("valor-negativo", temVendas && lucroTotal < 0);
+    });
 
     textoResumoAviso.textContent = semLote > 0
         ? semLote + " venda(s) sem lote de compra correspondente (fora dos totais)"

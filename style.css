@@ -738,6 +738,25 @@ input[type="checkbox"] {
     font-weight: 600;
 }
 
+/* Valores monetários cabem melhor num tamanho menor que o do estoque */
+.card-valor-medio {
+    font-family: var(--fonte-texto);   /* Jost, a mesma das tabelas */
+    font-size: 1.9rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums; /* dígitos com a mesma largura */
+}
+
+.aviso-resumo {
+    margin: -20px 0 32px 4px;
+    font-size: 0.85rem;
+    color: var(--cor-texto-suave);
+}
+
+/* Some (e não ocupa espaço) quando não há aviso */
+.aviso-resumo:empty {
+    display: none;
+}
+
 /* ====================================================================
    13. RESPONSIVIDADE
    Em telas estreitas a sidebar vira uma faixa no topo e o menu
@@ -812,7 +831,8 @@ button:focus-visible {
     outline-color: var(--cor-champanhe);
 }
 
-#lote, #num {
+#lote,
+#num {
     background: var(--cor-suave);
     color: var(--cor-texto-suave);
     pointer-events: none;
