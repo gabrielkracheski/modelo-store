@@ -157,6 +157,7 @@ onAuthStateChanged(auth, function (usuario) {
             });
 
             renderizar();
+            renderizarResumo();
         });
 
         // Vendas
@@ -171,6 +172,7 @@ onAuthStateChanged(auth, function (usuario) {
             });
 
             renderizarVendas();
+            renderizarResumo();
 
         });
 
@@ -188,6 +190,7 @@ onAuthStateChanged(auth, function (usuario) {
 
         compras = [];
         vendas = [];
+        renderizarResumo();
         selecionados.clear();
         selecionadosVenda.clear();
         renderizar();
@@ -428,12 +431,47 @@ botaoLimparFiltrosVenda.addEventListener("click", function () {
    9. FUNÇÕES AUXILIARES (moeda, data, total)
    ==================================================================== */
 
+// Quanto ainda resta de um lote, em ampolas.
+// idIgnorado: ao EDITAR uma venda, ela não pode contar contra si mesma.
+function estoqueDoLote(lote, idIgnorado) {
+    let comprado = 0;
+    compras.forEach(function (c) {
+        if (Number(c.lote) === lote) {
+            comprado += (Number(c.quantidade) || 0) * AMPOLAS_POR_CAIXA;
+        }
+    });
+
+    let vendido = 0;
+    vendas.forEach(function (v) {
+        if (Number(v.loteVenda) !== lote || v.id === idIgnorado) return;
+        const qtd = Number(v.quantidadeVenda) || 0;
+        vendido += v.tipoVenda === "Caixa" ? qtd * AMPOLAS_POR_CAIXA : qtd;
+    });
+
+    return { comprado: comprado, restante: comprado - vendido };
+}
+
 // Formata número como moeda brasileira (ex: 1500 -> "R$ 1.500,00")
 function formatarMoeda(valor) {
     return "R$ " + valor.toLocaleString("pt-BR", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });
+}
+
+function formatarPercentual(valor) {
+    return valor.toLocaleString("pt-BR", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1
+    }) + "%";
+}
+
+// Cria uma <td> com texto (textContent evita injetar HTML digitado pelo usuário)
+function criarCelula(texto, classe) {
+    const celula = document.createElement("td");
+    celula.textContent = texto;
+    if (classe) celula.className = classe;
+    return celula;
 }
 
 // Só para exibição: converte AAAA-MM-DD em DD-MM-AAAA
@@ -630,6 +668,33 @@ formVenda.addEventListener("submit", async function (evento) {
         const entregaVenda = document.getElementById("entregaVenda").value;
         const dataEntregaVenda = document.getElementById("dataEntregaVenda").value;
         const pagoVenda = document.getElementById("pagoVenda").value;
+
+        // ---------- Verifica o estoque do lote ----------
+        const ampolasDestaVenda = tipoVenda === "Caixa"
+            ? quantidadeVenda * AMPOLAS_POR_CAIXA
+            : quantidadeVenda;
+
+        const idEditando = indiceEmEdicaoVenda === null
+            ? null
+            : vendas[indiceEmEdicaoVenda].id;
+
+        const estoque = estoqueDoLote(loteVenda, idEditando);
+
+        if (estoque.comprado === 0) {
+            alert("O lote " + loteVenda + " não existe nas compras.");
+            return;
+        }
+
+        if (estoque.restante <= 0) {
+            alert("O lote " + loteVenda + " já está esgotado. Escolha outro lote.");
+            return;
+        }
+
+        if (ampolasDestaVenda > estoque.restante) {
+            alert("Estoque insuficiente no lote " + loteVenda + ": restam " +
+                estoque.restante + " ampola(s) e esta venda precisa de " + ampolasDestaVenda + ".");
+            return;
+        }
 
         const dadosBase = {
             uid: auth.currentUser.uid,
@@ -866,7 +931,7 @@ function renderizarVendas() {
     const tipoVenda = filtroTipoVenda.value
     const entregaVenda = filtroEntregaVenda.value
     const pagoVenda = filtroPagoVenda.value;
-
+    console.log(vendas);
     // --- Filtra e ordena (mais recente primeiro) ---
     const lancamentosFiltradosVenda = vendas.filter(function (item) {
         const passaDataInicioVenda = dataInicioVenda === "" || item.dataVenda >= dataInicioVenda;
@@ -876,7 +941,7 @@ function renderizarVendas() {
         const passaPagoVenda = pagoVenda === "" || (item.pagoVenda || "Não") === pagoVenda;
         return passaDataInicioVenda && passaDataFimVenda && passaEntregaVenda && passaTipoVenda && passaPagoVenda;
     }).sort(function (a, b) {
-        return b.dataVenda.localeCompare(a.dataVenda);
+        return (Number(b.num) || 0) - (Number(a.num) || 0);
     });
 
     // --- Paginação: calcula o total de páginas e o recorte da página atual ---
@@ -994,4 +1059,127 @@ function renderizarVendas() {
     atualizarBarraSelecaoVenda();
     textoTotalVendas.textContent = "Total: " + lancamentosFiltradosVenda.length + " lançamento(s)";
 
+}
+
+/* ====================================================================
+   15. RESUMO (estoque + lucro por venda)
+   ==================================================================== */
+const AMPOLAS_POR_CAIXA = 4;
+
+const cardsEstoque = document.getElementById("cards-estoque");
+const textoEstoqueCaixas = document.getElementById("estoque-caixas");
+const textoEstoqueCaixasDetalhe = document.getElementById("estoque-caixas-detalhe");
+const textoEstoqueAmpolas = document.getElementById("estoque-ampolas");
+const textoEstoqueAmpolasDetalhe = document.getElementById("estoque-ampolas-detalhe");
+const listaResumo = document.getElementById("lista-resumo");
+const textoResumoTotais = document.getElementById("texto-resumo-totais");
+const textoResumoAviso = document.getElementById("texto-resumo-aviso");
+
+function renderizarResumo() {
+
+    // ---------- 1) ESTOQUE (tudo convertido para ampolas) ----------
+    let ampolasCompradas = 0;
+    compras.forEach(function (c) {
+        ampolasCompradas += (Number(c.quantidade) || 0) * AMPOLAS_POR_CAIXA;
+    });
+
+    let ampolasVendidas = 0;
+    vendas.forEach(function (v) {
+        const qtd = Number(v.quantidadeVenda) || 0;
+        ampolasVendidas += v.tipoVenda === "Caixa" ? qtd * AMPOLAS_POR_CAIXA : qtd;
+    });
+
+    const estoqueAmpolas = ampolasCompradas - ampolasVendidas;
+    const estoqueCaixas = Math.trunc(estoqueAmpolas / AMPOLAS_POR_CAIXA);
+    const ampolasSoltas = estoqueAmpolas % AMPOLAS_POR_CAIXA;
+
+    textoEstoqueCaixas.textContent = estoqueCaixas;
+    textoEstoqueAmpolas.textContent = estoqueAmpolas;
+    textoEstoqueAmpolasDetalhe.textContent =
+        "Compradas: " + ampolasCompradas + " · Vendidas: " + ampolasVendidas;
+    cardsEstoque.classList.toggle("negativo", estoqueAmpolas < 0);
+
+    if (estoqueAmpolas < 0) {
+        textoEstoqueCaixasDetalhe.textContent = "Atenção: vendas maiores que as compras";
+    } else if (ampolasSoltas > 0) {
+        textoEstoqueCaixasDetalhe.textContent = "+ " + ampolasSoltas + " ampola(s) solta(s)";
+    } else {
+        textoEstoqueCaixasDetalhe.textContent = "Nenhuma ampola solta";
+    }
+
+    // ---------- 2) CUSTO DE CADA LOTE DE COMPRA ----------
+    // Se houver mais de uma compra com o mesmo lote, soma as duas
+    const custoPorLote = {};
+    compras.forEach(function (c) {
+        if (!custoPorLote[c.lote]) custoPorLote[c.lote] = { caixas: 0, custo: 0 };
+        custoPorLote[c.lote].caixas += Number(c.quantidade) || 0;
+        custoPorLote[c.lote].custo += Number(c.total) || 0;
+    });
+
+    // ---------- 3) LUCRO DE CADA VENDA ----------
+    listaResumo.innerHTML = "";
+    let somaVendas = 0;
+    let somaCusto = 0;
+    let semLote = 0;
+
+    const ordenadas = vendas.slice().sort(function (a, b) {
+        return (Number(b.num) || 0) - (Number(a.num) || 0);
+    });
+
+    ordenadas.forEach(function (v) {
+        const qtd = Number(v.quantidadeVenda) || 0;
+        const totalVenda = Number(v.totalVenda) || 0;
+        const lote = custoPorLote[v.loteVenda];
+        const linha = document.createElement("tr");
+
+        linha.appendChild(criarCelula(v.num));
+        linha.appendChild(criarCelula(v.dataVenda ? formatarData(v.dataVenda) : "—"));
+        linha.appendChild(criarCelula(v.nomeVenda));
+        linha.appendChild(criarCelula(v.loteVenda));
+        linha.appendChild(criarCelula(v.tipoVenda));
+        linha.appendChild(criarCelula(qtd));
+        linha.appendChild(criarCelula(formatarMoeda(Number(v.precoVenda) || 0)));
+        linha.appendChild(criarCelula(formatarMoeda(totalVenda)));
+
+        if (lote && lote.caixas > 0) {
+            const custoCaixa = lote.custo / lote.caixas;
+            const custoUnitario = v.tipoVenda === "Caixa"
+                ? custoCaixa
+                : custoCaixa / AMPOLAS_POR_CAIXA;
+            const custoTotal = custoUnitario * qtd;
+            const lucro = totalVenda - custoTotal;
+            const margem = totalVenda > 0 ? (lucro / totalVenda) * 100 : 0;
+            const classe = lucro >= 0 ? "valor-positivo" : "valor-negativo";
+
+            somaVendas += totalVenda;
+            somaCusto += custoTotal;
+
+            linha.appendChild(criarCelula(formatarMoeda(custoUnitario)));
+            linha.appendChild(criarCelula(formatarMoeda(custoTotal)));
+            linha.appendChild(criarCelula(formatarMoeda(lucro), classe));
+            linha.appendChild(criarCelula(formatarPercentual(margem), classe));
+        } else {
+            // Venda cujo lote não existe nas compras: não dá para calcular o custo
+            semLote++;
+            for (let i = 0; i < 4; i++) {
+                linha.appendChild(criarCelula("—", "sem-dado"));
+            }
+        }
+
+        listaResumo.appendChild(linha);
+    });
+
+    // ---------- 4) TOTAIS ----------
+    const lucroTotal = somaVendas - somaCusto;
+    const margemTotal = somaVendas > 0 ? (lucroTotal / somaVendas) * 100 : 0;
+
+    textoResumoTotais.textContent = vendas.length === 0 ? "" :
+        "Vendido: " + formatarMoeda(somaVendas) +
+        " · Custo: " + formatarMoeda(somaCusto) +
+        " · Lucro: " + formatarMoeda(lucroTotal) +
+        " · Margem: " + formatarPercentual(margemTotal);
+
+    textoResumoAviso.textContent = semLote > 0
+        ? semLote + " venda(s) sem lote de compra correspondente (fora dos totais)"
+        : "";
 }

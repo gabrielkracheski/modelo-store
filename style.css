@@ -685,6 +685,59 @@ input[type="checkbox"] {
 }
 
 
+/* RESUMO: cards de estoque */
+.cards-estoque {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.card-resumo {
+    background: var(--cor-card);
+    border-radius: var(--raio-card);
+    box-shadow: 0 4px 20px var(--cor-sombra);
+    padding: 22px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.card-titulo {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--cor-texto-suave);
+}
+
+.card-valor {
+    font-family: var(--fonte-titulo);
+    font-size: 3.2rem;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--cor-texto);
+}
+
+.card-detalhe {
+    font-size: 0.85rem;
+    color: var(--cor-texto-suave);
+}
+
+/* Estoque negativo: número em vermelho */
+.cards-estoque.negativo .card-valor {
+    color: var(--cor-nao);
+}
+
+/* Lucro positivo / negativo na tabela */
+.valor-positivo {
+    color: var(--cor-sim);
+    font-weight: 600;
+}
+
+.valor-negativo {
+    color: var(--cor-nao);
+    font-weight: 600;
+}
+
 /* ====================================================================
    13. RESPONSIVIDADE
    Em telas estreitas a sidebar vira uma faixa no topo e o menu

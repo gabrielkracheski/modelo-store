@@ -353,7 +353,51 @@
                     </div>
 
                 </section>
+                <section id="secao-resumo" class="secao">
+                    <h1>Resumo</h1>
 
+                    <p class="rotulo-secao">Estoque atual</p>
+                    <div class="cards-estoque" id="cards-estoque">
+                        <div class="card-resumo">
+                            <span class="card-titulo">Caixas fechadas</span>
+                            <strong class="card-valor" id="estoque-caixas">0</strong>
+                            <span class="card-detalhe" id="estoque-caixas-detalhe"></span>
+                        </div>
+                        <div class="card-resumo">
+                            <span class="card-titulo">Ampolas (total)</span>
+                            <strong class="card-valor" id="estoque-ampolas">0</strong>
+                            <span class="card-detalhe" id="estoque-ampolas-detalhe"></span>
+                        </div>
+                    </div>
+
+                    <p class="rotulo-secao">Lucro por venda</p>
+                    <div class="tabela-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nº</th>
+                                    <th>Data</th>
+                                    <th>Nome</th>
+                                    <th>Lote</th>
+                                    <th>Tipo</th>
+                                    <th>Qtd.</th>
+                                    <th>Preço venda</th>
+                                    <th>Total venda</th>
+                                    <th>Custo unit.</th>
+                                    <th>Custo total</th>
+                                    <th>Lucro</th>
+                                    <th>Margem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-resumo"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="rodape-tabela">
+                        <span id="texto-resumo-totais"></span>
+                        <span id="texto-resumo-aviso"></span>
+                    </div>
+                </section>
             </main>
 
         </div>
