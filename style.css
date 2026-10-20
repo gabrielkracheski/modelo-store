@@ -851,20 +851,12 @@ button:focus-visible {
 }
 
 @media (max-width: 768px) {
-
-    th,
-    td {
-        padding: 8px 10px;
-        font-size: 0.8rem;
-    }
-
-    th {
-        font-size: 0.75rem;
-    }
-
-    #lista-compras button,
-    #lista-vendas button {
-        padding: 5px 10px;
-        font-size: 0.75rem;
+    .tabela-scroll {
+        overflow: hidden;
+        /* sem rolagem própria; só recorta os cantos arredondados */
+        width: max-content;
+        /* o quadro cresce até a largura da tabela */
+        min-width: 100%;
+        /* nunca fica menor que a tela */
     }
 }
