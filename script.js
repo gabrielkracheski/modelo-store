@@ -272,7 +272,7 @@ const selecionarTodosVenda = document.getElementById("selecionar-todos-venda");
 
 // Controle de paginação e edição
 let paginaAtual = 1;
-let itensPorPagina = 10; // let, não const: muda via seletor de itens por página
+let itensPorPagina = 50; // let, não const: muda via seletor de itens por página
 let indiceEmEdicao = null; // null = criando um novo; número = editando esse índice
 const botaoPaginaAnterior = document.getElementById("botao-pagina-anterior");
 const botaoPaginaProxima = document.getElementById("botao-pagina-proxima");
@@ -280,7 +280,7 @@ const textoPagina = document.getElementById("texto-pagina");
 const seletorItensPorPagina = document.getElementById("itens-por-pagina");
 
 let paginaAtualVenda = 1;
-let itensPorPaginaVenda = 10;
+let itensPorPaginaVenda = 50;
 let indiceEmEdicaoVenda = null;
 const botaoPaginaAnteriorVenda = document.getElementById("botao-pagina-anterior-venda");
 const botaoPaginaProximaVenda = document.getElementById("botao-pagina-proxima-venda");

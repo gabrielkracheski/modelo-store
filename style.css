@@ -740,10 +740,12 @@ input[type="checkbox"] {
 
 /* Valores monetários cabem melhor num tamanho menor que o do estoque */
 .card-valor-medio {
-    font-family: var(--fonte-texto);   /* Jost, a mesma das tabelas */
+    font-family: var(--fonte-texto);
+    /* Jost, a mesma das tabelas */
     font-size: 1.9rem;
     font-weight: 500;
-    font-variant-numeric: tabular-nums; /* dígitos com a mesma largura */
+    font-variant-numeric: tabular-nums;
+    /* dígitos com a mesma largura */
 }
 
 .aviso-resumo {
@@ -845,5 +847,24 @@ button:focus-visible {
 @media (prefers-reduced-motion: reduce) {
     * {
         transition: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+
+    th,
+    td {
+        padding: 8px 10px;
+        font-size: 0.8rem;
+    }
+
+    th {
+        font-size: 0.75rem;
+    }
+
+    #lista-compras button,
+    #lista-vendas button {
+        padding: 5px 10px;
+        font-size: 0.75rem;
     }
 }
