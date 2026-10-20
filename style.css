@@ -851,12 +851,29 @@ button:focus-visible {
 }
 
 @media (max-width: 768px) {
-    .tabela-scroll {
-        overflow: hidden;
-        /* sem rolagem própria; só recorta os cantos arredondados */
+
+    /* A página inteira passa a ter a largura da tabela mais larga */
+    .layout {
         width: max-content;
-        /* o quadro cresce até a largura da tabela */
         min-width: 100%;
         /* nunca fica menor que a tela */
+    }
+
+    .tabela-scroll {
+        overflow: hidden;
+        width: max-content;
+        min-width: 100%;
+    }
+
+    /* Com a página larga, o que estava centralizado ou à direita
+       sairia da tela. Alinhar à esquerda mantém tudo à vista. */
+    .paginacao,
+    .rodape-tabela,
+    .sidebar-rodape {
+        justify-content: flex-start;
+    }
+
+    .sidebar-rodape {
+        gap: 16px;
     }
 }
